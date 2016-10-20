@@ -20,10 +20,11 @@ module Erlen
         unless value == true || value == false
           raise ValidationError.new("#{name}: #{value} is not Boolean")
         end
-      elsif type <= BaseSchema
-
       elsif !value.is_a? type
         raise ValidationError.new("#{name}: #{value} is not #{type.name}")
+      elsif type <= BaseSchema && !value.valid?
+        # uhh.. this can be better. not tested.
+        raise ValidationError.new(value.errors.map {|e| e.message}.join("\n"))
       end
       if !validation.nil? && !validation.call(value)
         file, line = validation.source_location if !validation.nil?
