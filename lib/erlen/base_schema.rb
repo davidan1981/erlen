@@ -36,7 +36,7 @@ module Erlen
 
       # Bulk assign initial attributes
       attributes.each_pair do |k, v|
-        method_missing(:"#{k}=", v)
+        __assign_attribute(k, v)
       end
     end
 
@@ -50,22 +50,12 @@ module Erlen
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
-        attr_name = mname.to_s[0..-2]
-        assign = true
+        __assign_attribute(mname.to_s[0..-2], value)
       else
-        attr_name = mname.to_s
-        assign = false
-      end
-      klass = self.class
-      unless @attributes.include?(attr_name)
-        raise NoAttributeError
-      end
+        raise mname.inspect unless @attributes.include?(mname.to_s)
 
-      if assign
-        @attributes[attr_name] = value
-        @valid = nil # a value is dirty so not valid anymore until next validation
+        @attributes[mname.to_s]
       end
-      @attributes[attr_name]
     end
 
     protected
@@ -79,7 +69,7 @@ module Erlen
         begin
           klass_attribute.validate(v)
         rescue ValidationError => e
-          @errors << e
+          @errors << e.message
         end
       end
       klass.validator_procs.each do |p|
@@ -90,11 +80,21 @@ module Erlen
         else
           unless result
             file, line = p.source_location
-            @errors << ValidationError.new("Validation failed for #{file}:#{line}")
+            @errors << "Validation failed for #{file}:#{line}"
           end
         end
       end
       @valid = (@errors.size == 0)
+    end
+
+    def __assign_attribute(name, value)
+      raise name.inspect unless @attributes.include?(name)
+
+      attr = self.class.schema_attributes[name.to_s]
+      value = attr.type.new(value) if attr.type <= BaseSchema
+
+      @valid = nil # a value is dirty so not valid anymore until next validation
+      @attributes[name] = value
     end
 
   end

@@ -16,15 +16,13 @@ module Erlen
         raise ValidationError.new("#{name} is required.")
       elsif value.is_a?(Undefined)
         # then fine
-      elsif type == Boolean
-        unless value == true || value == false
+      elsif type == Boolean && (value != true && value != false)
           raise ValidationError.new("#{name}: #{value} is not Boolean")
-        end
-      elsif !value.is_a? type
-        raise ValidationError.new("#{name}: #{value} is not #{type.name}")
       elsif type <= BaseSchema && !value.valid?
         # uhh.. this can be better. not tested.
-        raise ValidationError.new(value.errors.map {|e| e.message}.join("\n"))
+        raise ValidationError.new(value.errors.map {|e| "#{name}: #{e.message}" }.join("\n"))
+      elsif !value.is_a? type
+        raise ValidationError.new("#{name}: #{value} is not #{type.name}")
       end
       if !validation.nil? && !validation.call(value)
         file, line = validation.source_location if !validation.nil?
