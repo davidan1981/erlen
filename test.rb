@@ -6,7 +6,7 @@ end
 class AccountSchema < Erlen::BaseIDSchema
   attribute(:auto_pay, Boolean) {|value| true }
   attribute(:default_payment_method, PaymentMethodSchema, required: true)
-  validate {|obj| obj.auto_pay == true}
+  validate("Auto pay required") {|obj| obj.auto_pay == true}
 end
 
 now = Time.now

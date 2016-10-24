@@ -1,4 +1,5 @@
 require_relative 'core'
+require_relative 'errors'
 
 module Erlen
   class Attribute
@@ -16,8 +17,10 @@ module Erlen
         raise ValidationError.new("#{name} is required.")
       elsif value.is_a?(Undefined)
         # then fine
-      elsif type == Boolean && (value != true && value != false)
+      elsif type == Boolean
+        if (value != true && value != false)
           raise ValidationError.new("#{name}: #{value} is not Boolean")
+        end
       elsif type <= BaseSchema && !value.valid?
         # uhh.. this can be better. not tested.
         raise ValidationError.new(value.errors.map {|e| "#{name}: #{e.message}" }.join("\n"))

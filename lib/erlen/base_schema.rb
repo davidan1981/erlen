@@ -19,8 +19,8 @@ module Erlen
         schema_attributes[name.to_s] = attr
       end
 
-      def validate(&blk)
-        validator_procs << blk
+      def validate(message, &blk)
+        validator_procs << [message, blk]
       end
     end
 
@@ -72,16 +72,13 @@ module Erlen
           @errors << e.message
         end
       end
-      klass.validator_procs.each do |p|
+      klass.validator_procs.each do |m, p|
         begin
           result = p.call(self)
         rescue Exception => e
           @errors << e
         else
-          unless result
-            file, line = p.source_location
-            @errors << "Validation failed for #{file}:#{line}"
-          end
+          @errors << m unless result
         end
       end
       @valid = (@errors.size == 0)

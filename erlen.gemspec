@@ -11,4 +11,6 @@ Gem::Specification.new do |s|
   #s.email       = 'nick@quaran.to'
   #s.homepage    = 'http://rubygems.org/gems/hola'
   #s.license     = 'MIT'
+
+  s.add_development_dependency "rspec"
 end
