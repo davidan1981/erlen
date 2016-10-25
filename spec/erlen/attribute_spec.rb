@@ -38,7 +38,7 @@ describe Erlen::Attribute do
       attr = subject.new(:nested, NestedSchema)
 
       hash = {}
-      hash["integer"] = 1
+      hash[:integer] = 1
       val = NestedSchema.new(hash)
       attr.validate(val)
     end
