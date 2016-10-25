@@ -15,8 +15,8 @@ module Erlen
       end
 
       def attribute(name, type, opts={}, &validation)
-        attr = Attribute.new(name.to_s, type, opts, &validation)
-        schema_attributes[name.to_s] = attr
+        attr = Attribute.new(name.to_sym, type, opts, &validation)
+        schema_attributes[name.to_sym] = attr
       end
 
       def validate(message, &blk)
@@ -50,11 +50,11 @@ module Erlen
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
-        __assign_attribute(mname.to_s[0..-2], value)
+        __assign_attribute(mname[0..-2].to_sym, value)
       else
-        raise mname.inspect unless @attributes.include?(mname.to_s)
+        raise NoAttributeError unless @attributes.include?(mname.to_sym)
 
-        @attributes[mname.to_s]
+        @attributes[mname.to_sym]
       end
     end
 
@@ -85,9 +85,9 @@ module Erlen
     end
 
     def __assign_attribute(name, value)
-      raise name.inspect unless @attributes.include?(name)
+      raise NoAttributeError unless @attributes.include?(name)
 
-      attr = self.class.schema_attributes[name.to_s]
+      attr = self.class.schema_attributes[name]
       value = attr.type.new(value) if attr.type <= BaseSchema
 
       @valid = nil # a value is dirty so not valid anymore until next validation
