@@ -19,7 +19,7 @@ describe Erlen::Attribute do
     it "throws exception if is required, but is Undefined" do
       attr = subject.new(:required, Type, { required: true })
 
-      expect { attr.validate(Erlen::Undefined.new) }.to raise_error(Erlen::ValidationError, "required is required.")
+      expect { attr.validate(Erlen::Undefined.new) }.to raise_error(Erlen::ValidationError, "required is required")
     end
 
     it "if not required, but undefined. no checks" do

@@ -1,3 +1,5 @@
+require 'json'
+
 module Erlen
   module JSONSerializer
     def self.from_json(json, schemaClass)
@@ -14,15 +16,23 @@ module Erlen
 
     private
 
-    def convert_hash_keys(value)
+    def self.convert_hash_keys(value)
       case value
       when Array
         value.map(&:convert_hash_keys)
       when Hash
-        Hash[value.map { |k, v| [k.underscore.to_sym, convert_hash_keys(v)] }]
+        Hash[value.map { |k, v| [underscore(k).to_sym, convert_hash_keys(v)] }]
       else
         value
       end
+    end
+
+    def self.underscore(str)
+      str.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').
+        tr("-", "_").
+        downcase
     end
 
   end

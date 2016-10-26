@@ -41,18 +41,14 @@ module Erlen
     end
 
     def valid?
-      if @valid.nil?
-        __schema__validate
-      else
-        @valid
-      end
+      @valid ||= __schema__validate
     end
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
         __assign_attribute(mname[0..-2].to_sym, value)
       else
-        raise NoAttributeError unless @attributes.include?(mname.to_sym)
+        raise NoAttributeError.new(mname) unless @attributes.include?(mname.to_sym)
 
         @attributes[mname.to_sym]
       end
@@ -72,6 +68,9 @@ module Erlen
           @errors << e.message
         end
       end
+
+      #raise klass.validator_procs.inspect
+
       klass.validator_procs.each do |m, p|
         begin
           result = p.call(self)
