@@ -48,12 +48,14 @@ module Erlen
 
     def init_object(obj)
       self.class.schema_attributes.each_pair do |k, attr|
-        method_name = attr.method_name
-        attr_val = self.respond_to?(method_name) ?
-          self.send(method_name, initial_value) :
-          initial_value.send(method_name)
+        method_name = attr.method_name.to_sym
 
-        __assign_attribute(k, attr_val)
+        default_val = attr.options[:default]
+        attr_val = self.respond_to?(method_name) ?
+          self.send(method_name, obj) :
+          obj.send(method_name)
+
+        __assign_attribute(k, (attr_val || default_val))
       end
     end
 

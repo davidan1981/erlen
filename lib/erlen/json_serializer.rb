@@ -1,4 +1,5 @@
 require 'json'
+require_relative 'base_serializer'
 
 module Erlen
   class JSONSerializer < BaseSerializer
