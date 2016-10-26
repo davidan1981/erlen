@@ -15,12 +15,12 @@ module Erlen
       end
 
       def attribute(name, type, opts={}, &validation)
-        attr = Attribute.new(name.to_s, type, opts, &validation)
-        schema_attributes[name.to_s] = attr
+        attr = Attribute.new(name.to_sym, type, opts, &validation)
+        schema_attributes[name.to_sym] = attr
       end
 
-      def validate(&blk)
-        validator_procs << blk
+      def validate(message, &blk)
+        validator_procs << [message, blk]
       end
     end
 
@@ -36,36 +36,22 @@ module Erlen
 
       # Bulk assign initial attributes
       attributes.each_pair do |k, v|
-        method_missing(:"#{k}=", v)
+        __assign_attribute(k, v)
       end
     end
 
     def valid?
-      if @valid.nil?
-        __schema__validate
-      else
-        @valid
-      end
+      @valid ||= __schema__validate
     end
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
-        attr_name = mname.to_s[0..-2]
-        assign = true
+        __assign_attribute(mname[0..-2].to_sym, value)
       else
-        attr_name = mname.to_s
-        assign = false
-      end
-      klass = self.class
-      unless @attributes.include?(attr_name)
-        raise NoAttributeError
-      end
+        raise NoAttributeError.new(mname) unless @attributes.include?(mname.to_sym)
 
-      if assign
-        @attributes[attr_name] = value
-        @valid = nil # a value is dirty so not valid anymore until next validation
+        @attributes[mname.to_sym]
       end
-      @attributes[attr_name]
     end
 
     protected
@@ -79,22 +65,32 @@ module Erlen
         begin
           klass_attribute.validate(v)
         rescue ValidationError => e
-          @errors << e
+          @errors << e.message
         end
       end
-      klass.validator_procs.each do |p|
+
+      #raise klass.validator_procs.inspect
+
+      klass.validator_procs.each do |m, p|
         begin
           result = p.call(self)
         rescue Exception => e
           @errors << e
         else
-          unless result
-            file, line = p.source_location
-            @errors << ValidationError.new("Validation failed for #{file}:#{line}")
-          end
+          @errors << m unless result
         end
       end
       @valid = (@errors.size == 0)
+    end
+
+    def __assign_attribute(name, value)
+      raise NoAttributeError unless @attributes.include?(name)
+
+      attr = self.class.schema_attributes[name]
+      value = attr.type.new(value) if attr.type <= BaseSchema
+
+      @valid = nil # a value is dirty so not valid anymore until next validation
+      @attributes[name] = value
     end
 
   end

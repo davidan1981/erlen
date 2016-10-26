@@ -1,4 +1,5 @@
 require_relative 'core'
+require_relative 'errors'
 
 module Erlen
   class Attribute
@@ -13,22 +14,22 @@ module Erlen
     # attribute specific validation
     def validate(value)
       if options[:required] && value.is_a?(Undefined)
-        raise ValidationError.new("#{name} is required.")
+        raise ValidationError.new("#{name} is required")
       elsif value.is_a?(Undefined)
         # then fine
       elsif type == Boolean
-        unless value == true || value == false
+        if (value != true && value != false)
           raise ValidationError.new("#{name}: #{value} is not Boolean")
         end
-      elsif !value.is_a? type
-        raise ValidationError.new("#{name}: #{value} is not #{type.name}")
       elsif type <= BaseSchema && !value.valid?
         # uhh.. this can be better. not tested.
-        raise ValidationError.new(value.errors.map {|e| e.message}.join("\n"))
+        raise ValidationError.new(value.errors.map {|m| "#{name}: #{m}" }.join("\n"))
+      elsif !value.is_a? type
+        raise ValidationError.new("#{name}: #{value} is not #{type.name}")
       end
+
       if !validation.nil? && !validation.call(value)
-        file, line = validation.source_location if !validation.nil?
-        raise ValidationError.new("Custom validation failed: #{file}:#{line}")
+        raise ValidationError.new("#{name} is not valid")
       end
     end
   end
