@@ -24,7 +24,7 @@ module Erlen
       end
     end
 
-    def initialize(attributes = {})
+    def initialize(initial_value)
       @valid = nil
       @attributes = {}
       @errors = []
@@ -34,9 +34,26 @@ module Erlen
         @attributes[k] = Undefined.new
       end
 
-      # Bulk assign initial attributes
-      attributes.each_pair do |k, v|
-        __assign_attribute(k, v)
+      if initial_value.is_a? Hash
+        # Bulk assign initial attributes
+        attributes.each_pair do |k, v|
+          __assign_attribute(k, v)
+        end
+
+      else
+        init_object(initial_value)
+
+      end
+    end
+
+    def init_object(obj)
+      self.class.schema_attributes.each_pair do |k, attr|
+        method_name = attr.method_name
+        attr_val = self.respond_to?(method_name) ?
+          self.send(method_name, initial_value) :
+          initial_value.send(method_name)
+
+        __assign_attribute(k, attr_val)
       end
     end
 
@@ -68,8 +85,6 @@ module Erlen
           @errors << e.message
         end
       end
-
-      #raise klass.validator_procs.inspect
 
       klass.validator_procs.each do |m, p|
         begin
