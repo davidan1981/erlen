@@ -20,7 +20,7 @@ module Erlen
       when Array
         value.map(&:convert_hash_keys)
       when Hash
-        Hash[value.map { |k, v| [underscore(k).to_sym, convert_hash_keys(v)] }]
+        Hash[value.map { |k, v| [underscore(k.to_s).to_sym, convert_hash_keys(v)] }]
       else
         value
       end
