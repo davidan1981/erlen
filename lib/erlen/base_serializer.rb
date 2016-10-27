@@ -7,17 +7,10 @@ module Erlen
     end
 
     def self.schema_to_data(schema)
-      return nil unless valid?
-      hash = {}
-      klass = schema.class
+      return nil unless schema.valid?
+      attrs = schema.class.schema_attributes
 
-      schema.attributes.each_pair do |k, v|
-        klass_attribute = klass.schema_attributes[k]
-
-        hash[klass_attribute.name] = v
-      end
-
-      hash
+      Hash[attrs.map { |k, attr| [attr.name, schema.get_value(k)] }]
     end
 
     private

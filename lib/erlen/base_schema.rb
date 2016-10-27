@@ -36,7 +36,7 @@ module Erlen
 
       if initial_value.is_a? Hash
         # Bulk assign initial attributes
-        attributes.each_pair do |k, v|
+        initial_value.each_pair do |k, v|
           __assign_attribute(k, v)
         end
 
@@ -71,6 +71,10 @@ module Erlen
 
         @attributes[mname.to_sym]
       end
+    end
+
+    def get_value(k)
+      @attributes[k.to_sym]
     end
 
     protected
