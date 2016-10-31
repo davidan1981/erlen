@@ -17,11 +17,9 @@ describe Erlen::JSONSerializer do
   describe "#to_json" do
     it "returns json with right values" do
       json = "{\"foo\":\"bar\"}"
-      schema = subject.from_json(json, TestSerializerSchema)
+      s = TestSerializerSchema.new({ foo: 'bar' })
 
-      expect(schema.is_a? TestSerializerSchema).to be_truthy
-      expect(schema.foo).to eq('bar')
-      expect(schema.valid?).to be_truthy
+      expect(subject.to_json(s)).to eq(json)
     end
   end
 end
