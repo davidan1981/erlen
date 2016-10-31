@@ -24,7 +24,7 @@ module Erlen
       end
     end
 
-    def initialize(initial_value)
+    def initialize(obj)
       @valid = nil
       @attributes = {}
       @errors = []
@@ -34,26 +34,26 @@ module Erlen
         @attributes[k] = Undefined.new
       end
 
-      if initial_value.is_a? Hash
+      if obj.is_a? Hash
         # Bulk assign initial attributes
-        initial_value.each_pair do |k, v|
+        obj.each_pair do |k, v|
           __assign_attribute(k, v)
         end
 
       else
-        init_object(initial_value)
+        init_object(obj)
 
       end
     end
 
     def init_object(obj)
       self.class.schema_attributes.each_pair do |k, attr|
-        method_name = attr.method_name.to_sym
+        obj_attribute_name = attr.obj_attribute_name.to_sym
 
         default_val = attr.options[:default]
-        attr_val = self.respond_to?(method_name) ?
-          self.send(method_name, obj) :
-          obj.send(method_name)
+        attr_val = obj.respond_to?(obj_attribute_name) ?
+          obj.send(obj_attribute_name) :
+          Undefined.new
 
         __assign_attribute(k, (attr_val || default_val))
       end
@@ -71,10 +71,6 @@ module Erlen
 
         @attributes[mname.to_sym]
       end
-    end
-
-    def get_value(k)
-      @attributes[k.to_sym]
     end
 
     protected

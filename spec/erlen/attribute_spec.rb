@@ -15,17 +15,17 @@ describe Erlen::Attribute do
 
   end
 
-  describe "#method_name" do
+  describe "#obj_attribute_name" do
     it "returns name with no alias" do
       attr = subject.new(:foo, Type)
 
-      expect(attr.method_name).to eq("foo")
+      expect(attr.obj_attribute_name).to eq("foo")
     end
 
     it "returns alias if one is provided" do
       attr = subject.new(:foo, Type, alias: :bar)
 
-      expect(attr.method_name).to eq(:bar)
+      expect(attr.obj_attribute_name).to eq(:bar)
     end
   end
 

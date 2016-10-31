@@ -10,7 +10,7 @@ module Erlen
       return nil unless schema.valid?
       attrs = schema.class.schema_attributes
 
-      Hash[attrs.map { |k, attr| [attr.name, schema.get_value(k)] }]
+      Hash[attrs.map { |k, attr| [attr.name, schema.send(k)] }]
     end
 
     private

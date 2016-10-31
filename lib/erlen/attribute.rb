@@ -11,7 +11,7 @@ module Erlen
       self.validation = validation # proc object
     end
 
-    def method_name
+    def obj_attribute_name
       options[:alias] || name
     end
 
