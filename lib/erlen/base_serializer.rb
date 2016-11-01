@@ -1,17 +1,16 @@
-require 'json'
-
 module Erlen
-  module JSONSerializer
-    def self.from_json(json, schemaClass)
-      data = JSON.parse(json)
+  class BaseSerializer
+    def self.data_to_schema(data, schemaClass)
       data = convert_hash_keys(data)
 
       schemaClass.new(data)
     end
 
-    def self.to_json(schema)
-      # magic happens
-      # make sure to handle nesting
+    def self.schema_to_data(schema)
+      return nil unless schema.valid?
+      attrs = schema.class.schema_attributes
+
+      Hash[attrs.map { |k, attr| [attr.name, schema.send(k)] }]
     end
 
     private
@@ -21,7 +20,7 @@ module Erlen
       when Array
         value.map(&:convert_hash_keys)
       when Hash
-        Hash[value.map { |k, v| [underscore(k).to_sym, convert_hash_keys(v)] }]
+        Hash[value.map { |k, v| [underscore(k.to_s).to_sym, convert_hash_keys(v)] }]
       else
         value
       end
@@ -34,6 +33,5 @@ module Erlen
         tr("-", "_").
         downcase
     end
-
   end
 end

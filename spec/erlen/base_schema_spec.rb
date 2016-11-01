@@ -4,8 +4,15 @@ describe Erlen::BaseSchema do
   subject { described_class }
 
   describe "#initialize" do
-    it "sets all the values" do
+    it "sets all the values given a hash" do
       schema = TestBaseSchema.new({ foo: 'bar' })
+
+      expect(schema.class.schema_attributes).to include(:foo)
+      expect(schema.foo).to eq('bar')
+    end
+
+    it "sets all the values given an object" do
+      schema = TestBaseSchema.new(TestObj.new)
 
       expect(schema.class.schema_attributes).to include(:foo)
       expect(schema.foo).to eq('bar')
@@ -46,6 +53,13 @@ end
 
 class TestBaseSchema < Erlen::BaseSchema
   attribute :foo, String
+  attribute :custom, Integer
 
   validate("Error Message") { |s| s.foo == 'bar' || s.foo == 1 }
+end
+
+class TestObj
+  def foo
+    'bar'
+  end
 end
