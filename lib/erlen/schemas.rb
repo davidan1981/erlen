@@ -2,6 +2,9 @@ module Erlen
 
   # just listing out frequently used schemas as base schemas
 
+  class EmptySchema < BaseSchema
+  end
+
   class BaseTimestampSchema < BaseSchema
     attribute :created_at, Time
     attribute :updated_at, Time
@@ -9,6 +12,11 @@ module Erlen
 
   class BaseIDSchema < BaseTimestampSchema
     attribute :id, Integer
+  end
+
+  class ArrayFunctor
+    def self.create(name, elementSchema)
+    end
   end
 
   class ListSchema < BaseSchema
