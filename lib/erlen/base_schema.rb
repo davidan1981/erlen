@@ -41,21 +41,8 @@ module Erlen
         end
 
       else
-        init_object(obj)
+        __init_object(obj)
 
-      end
-    end
-
-    def init_object(obj)
-      self.class.schema_attributes.each_pair do |k, attr|
-        obj_attribute_name = attr.obj_attribute_name.to_sym
-
-        default_val = attr.options[:default]
-        attr_val = obj.respond_to?(obj_attribute_name) ?
-          obj.send(obj_attribute_name) :
-          Undefined.new
-
-        __assign_attribute(k, (attr_val || default_val))
       end
     end
 
@@ -74,6 +61,19 @@ module Erlen
     end
 
     protected
+
+    def __init_object(obj)
+      self.class.schema_attributes.each_pair do |k, attr|
+        obj_attribute_name = attr.obj_attribute_name.to_sym
+
+        default_val = attr.options[:default]
+        attr_val = obj.respond_to?(obj_attribute_name) ?
+          obj.send(obj_attribute_name) :
+          Undefined.new
+
+        __assign_attribute(k, (attr_val || default_val))
+      end
+    end
 
     def __schema__validate
       @valid = nil
