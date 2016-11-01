@@ -11,6 +11,10 @@ module Erlen
       self.validation = validation # proc object
     end
 
+    def obj_attribute_name
+      options[:alias] || name
+    end
+
     # attribute specific validation
     def validate(value)
       if options[:required] && value.is_a?(Undefined)

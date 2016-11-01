@@ -13,6 +13,15 @@ describe Erlen::JSONSerializer do
       expect(schema.valid?).to be_truthy
     end
   end
+
+  describe "#to_json" do
+    it "returns json with right values" do
+      json = "{\"foo\":\"bar\"}"
+      s = TestSerializerSchema.new({ foo: 'bar' })
+
+      expect(subject.to_json(s)).to eq(json)
+    end
+  end
 end
 
 class TestSerializerSchema < Erlen::BaseSchema
@@ -20,3 +29,4 @@ class TestSerializerSchema < Erlen::BaseSchema
 
   validate("Error Message") { |s| s.foo == 'bar' || s.foo == 1 }
 end
+
