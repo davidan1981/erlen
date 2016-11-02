@@ -10,7 +10,8 @@ module Erlen
     end
 
     def self.to_json(schema)
-      schema_to_data(schema).try(:to_json)
+      data = schema_to_data(schema)
+      data.to_json if data
     end
   end
 end

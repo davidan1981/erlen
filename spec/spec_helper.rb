@@ -21,6 +21,7 @@ require_relative '../lib/erlen/core'
 require_relative '../lib/erlen/errors'
 require_relative '../lib/erlen/schemas'
 require_relative '../lib/erlen/json_serializer'
+require_relative '../lib/erlen/controller_helper'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
