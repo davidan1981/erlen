@@ -90,7 +90,7 @@ module Erlen
     #
     # @return [Boolean] true if valid, otherwise false.
     def valid?
-      @valid ||= __schema__validate
+      @valid ||= __validate_payload
     end
 
     def method_missing(mname, value=nil)
@@ -118,7 +118,7 @@ module Erlen
       end
     end
 
-    def __schema__validate
+    def __validate_payload
       @valid = nil
       @errors.clear
       klass = self.class

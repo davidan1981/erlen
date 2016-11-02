@@ -5,22 +5,22 @@ describe Erlen::BaseSchema do
 
   describe "#initialize" do
     it "sets all the values given a hash" do
-      schema = TestBaseSchema.new({ foo: 'bar' })
+      payload = TestBaseSchema.new({ foo: 'bar' })
 
-      expect(schema.class.schema_attributes).to include(:foo)
-      expect(schema.foo).to eq('bar')
+      expect(payload.class.schema_attributes).to include(:foo)
+      expect(payload.foo).to eq('bar')
     end
 
     it "sets all the values given an object" do
-      schema = TestBaseSchema.new(TestObj.new)
+      payload = TestBaseSchema.new(TestObj.new)
 
-      expect(schema.class.schema_attributes).to include(:foo)
-      expect(schema.foo).to eq('bar')
+      expect(payload.class.schema_attributes).to include(:foo)
+      expect(payload.foo).to eq('bar')
     end
   end
 
   describe "#valid?" do
-    it "returns valid only if schema is perfect" do
+    it "returns valid only if payload is perfect" do
       valid = TestBaseSchema.new({ foo: 'bar' })
       expect(valid.valid?).to be_truthy
 

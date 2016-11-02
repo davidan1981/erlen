@@ -1,6 +1,10 @@
 module Erlen
+  # This helper module can be included in a controller to define action
+  # schemas, which creates before/after action callbacks to validate
+  # either/both request or/and response payloads.
   module ControllerHelper
-
+    # This module contains class methods that will extend the class that
+    # inherits #ControllerHelper
     module ClassMethods
 
       # Specifies a schema for the action. If request schema is specified,

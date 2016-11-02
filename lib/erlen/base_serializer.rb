@@ -1,16 +1,16 @@
 module Erlen
   class BaseSerializer
-    def self.data_to_schema(data, schemaClass)
+    def self.data_to_payload(data, schemaClass)
       data = convert_hash_keys(data)
 
       schemaClass.new(data)
     end
 
-    def self.schema_to_data(schema)
-      return nil unless schema.valid?
-      attrs = schema.class.schema_attributes
+    def self.payload_to_data(payload)
+      return nil unless payload.valid?
+      attrs = payload.class.schema_attributes
 
-      Hash[attrs.map { |k, attr| [attr.name, schema.send(k)] }]
+      Hash[attrs.map { |k, attr| [attr.name, payload.send(k)] }]
     end
 
     private
