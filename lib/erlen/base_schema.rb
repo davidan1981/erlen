@@ -28,7 +28,7 @@ module Erlen
 
       # Allows subclass of this schema to be valid. Use this with caution.
       def allow_subclass(allow)
-        subclass_allowed = allow
+        @@subclass_allowed = allow
       end
 
       # Defines an attribute for the schema. Must specify the type. If
@@ -60,6 +60,7 @@ module Erlen
         klass.schema_attributes = attrs
         procs = self.validator_procs.nil? ? [] : self.validator_procs.clone
         klass.validator_procs = procs
+        klass.subclass_allowed = false # by default
       end
     end
 
@@ -101,6 +102,10 @@ module Erlen
       @valid ||= __validate_payload
     end
 
+    def is_a?(klass)
+      klass <= BaseSchema && (klass == self.class || (klass.subclass_allowed && self.is_a?(klass)))
+    end
+
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
         __assign_attribute(mname[0..-2].to_sym, value)
@@ -118,7 +123,7 @@ module Erlen
         obj_attribute_name = attr.obj_attribute_name.to_sym
 
         default_val = attr.options[:default]
-        if obj.is_a? BaseSchema
+        if obj.class <= BaseSchema
           begin
             attr_val = obj.send(k)
           rescue NoAttributeError

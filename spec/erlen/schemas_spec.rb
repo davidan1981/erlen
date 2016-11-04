@@ -25,7 +25,6 @@ describe Erlen::OneOf do
       expect(dog_or_cat.is_a? Dog).to be_truthy
       expect(dog_or_cat.is_a? Cat).to be_truthy
       expect(dog_or_cat.is_a? Cow).to be_falsey
-      dog_or_cat.valid?
       expect(dog_or_cat.valid?).to be_truthy
       cow = Cow.new(moo: true)
       dog_or_cat = DogOrCat.new(cow)

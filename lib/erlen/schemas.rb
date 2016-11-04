@@ -36,8 +36,10 @@ module Erlen
           index.nil? ? nil : @@allowed_schemas[index]
         end
         def is_a?(schema)
-          # TODO: this can be more thorough.
-          schema <= BaseSchema && (schema == self.class || @@allowed_schemas.include?(schema))
+          super || valid? && @@allowed_schemas.any? do |s|
+            s == schema || (s.subclass_allowed && schema <= s) ||
+                (schema.subclass_allowed && s <= schema)
+          end
         end
       end
       klass
