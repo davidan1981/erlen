@@ -42,7 +42,7 @@ describe Erlen::AnySchema do
   end
 end
 
-describe Erlen::OneOf do
+describe Erlen::AnyOf do
   subject { described_class }
 
   class Dog < Erlen::BaseSchema
@@ -57,8 +57,8 @@ describe Erlen::OneOf do
     attribute :moo, Boolean, required: true
   end
 
-  DogOrCat = Erlen::OneOf.new(Dog, Cat)
-  CowOrNothing = Erlen::OneOf.new(Cow, Erlen::EmptySchema)
+  DogOrCat = Erlen::AnyOf.new(Dog, Cat)
+  CowOrNothing = Erlen::AnyOf.new(Cow, Erlen::EmptySchema)
 
   describe "validate" do
     it "validates as long as one schema matches" do

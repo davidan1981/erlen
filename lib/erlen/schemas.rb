@@ -17,7 +17,7 @@ module Erlen
     attribute :id, Integer
   end
 
-  class OneOf
+  class AnyOf
     # This class method will return a new class that is catered to the
     # specified schemas. This schema class represents _any_ of the specified
     # schemas.
@@ -37,7 +37,7 @@ module Erlen
           __init_inst_vars
         end
         def self.name
-          "OneOf#{self.allowed_schemas.map {|s| s.name}.join("_")}"
+          "AnyOf#{self.allowed_schemas.map {|s| s.name}.join("_")}"
         end
         def matched_schema
           index = self.class.allowed_schemas.index {|s| s.new(@obj).valid? }
