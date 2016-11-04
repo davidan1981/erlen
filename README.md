@@ -22,31 +22,22 @@ been validated against its schema definition.
 
 ## Usage
 
-The idea of Erlen is to define a set of schemas that work as contracts for
-actions taken between two parties. For instance, let's assume we have
-`JobsController` that does simple CRUD on job resources. We can define the
-following schemas
-
-    class BaseJobSchema < Erlen::BaseSchema
-      attribute :name, String, required: true
-      attribute :
-
-
-    class JobsController
-      include Erlen::ControllerHelper
-
-      action_schema :create, request: CreateJobRequestSchema, response: JobSchema
-      action_schema :update, request: UpdateJobRequestSchema, response: JobSchema
-      action_schema :show, response: JobSchema
-    end
+TBA
 
 ## Pre-defined Schemas
 
 For your convenience, we have defined a few schemas in the Erlen library.
 
-* `EmptySchema` - there is nothing in this schema.
-* `AnySchema` - this is a special schema definition that allows _any_
-content.
+* `EmptySchema`: there is nothing in this schema.
+* `AnySchema`: this is a special schema definition that allows _any_
+payload
+* `ResourceSchema`: This schema represents a resource payload which includes
+`id` and timestamp fields, `created_at` and `updated_at`.
+* `OneOf`: This allows any payload whose schema is one of the specified.
+* `ArrayOf`: This schema represents a list of payloads of the specified
+type.
+* `ResourceListOf`: Similar to `ArrayOf` but has a structure as defined in
+our API standard.
 
 ## Advanced Topics
 
