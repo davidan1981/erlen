@@ -25,6 +25,23 @@ describe Erlen::EmptySchema do
   end
 end
 
+describe Erlen::AnySchema do
+  subject { described_class }
+
+  class SomeSchema < Erlen::BaseSchema
+    attribute :flag, Boolean, required: true
+  end
+
+  describe "validate" do
+    it "validates some payload as any schema payload" do
+      some = SomeSchema.new(flag: true)
+      expect(some.valid?).to be_truthy
+      any = Erlen::AnySchema.new(some)
+      expect(any.valid?).to be_truthy
+    end
+  end
+end
+
 describe Erlen::OneOf do
   subject { described_class }
 

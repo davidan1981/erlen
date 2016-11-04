@@ -18,6 +18,12 @@ module Erlen
   end
 
   class OneOf
+    # This class method will return a new class that is catered to the
+    # specified schemas. This schema class represents _any_ of the specified
+    # schemas.
+    #
+    # @param args [Array]
+    # @return [BaseSchema] a dynamically created class <= BaseSchema.
     def self.new(*args)
       allowed_schemas = args
       klass = Class.new(BaseSchema) do |klass|
@@ -28,8 +34,7 @@ module Erlen
         validate("Schema is not validated as an allowed schema") {|payload| !payload.matched_schema.nil? }
         def initialize(obj)
           @obj = obj
-          @errors = []
-          @attributes = {}
+          __init_inst_vars
         end
         def self.name
           "OneOf#{self.allowed_schemas.map {|s| s.name}.join("_")}"
@@ -50,6 +55,11 @@ module Erlen
   end
 
   class ArrayOf
+    # This class method will return a new class that represents a collection
+    # schema with the specified element schema.
+    #
+    # @param elementSchema [BaseSchema] the schema of the element
+    # @return [BaseSchema] a dynamically created class <= BaseClass
     def self.new(elementSchema)
       Class.new(BaseSchema) do |klass|
         class << klass
@@ -64,9 +74,8 @@ module Erlen
           "ArrayOf#{elementSchema.name}_#{elementSchema.object_id}"
         end
         def initialize(elements=[])
-          @errors = []
-          @attributes = {}
           @elements = elements
+          __init_inst_vars
         end
         def elements
           @valid = nil # hacky

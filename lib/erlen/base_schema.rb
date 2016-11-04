@@ -27,11 +27,12 @@ module Erlen
       attr_accessor :subtype_allowed
 
       # Allows subtype of this schema to be valid. Use this with caution.
+      # It's a pandora's box.
       #
       # @param allow [Boolean] if set to true, this schema will allow
       #                        subtypes
       def allow_subtype(allow)
-        @@subtype_allowed = allow
+        self.subtype_allowed = allow
       end
 
       # Defines an attribute for the schema. Must specify the type. If
@@ -108,12 +109,9 @@ module Erlen
     # if the source object doesn't have certain attributes OR has additional
     # attributes.
     def initialize(obj = {})
-      @valid = nil
-      @attributes = {}
-      @errors = []
+      __init_inst_vars
 
       # TODO: this initialization can be written to be more efficient.
-
       # Initialize all values to undefined
       self.class.schema_attributes.each_pair do |k, v|
         @attributes[k] = Undefined.new
@@ -126,7 +124,7 @@ module Erlen
         end
 
       else
-        __init_payload(obj)
+        __init_with_payload(obj)
 
       end
     end
@@ -152,10 +150,7 @@ module Erlen
       elsif (klass == self.class)
         true
       elsif klass.subtype_allowed
-        # It's a hack but works. If klass allows subtyping, then all we need
-        # to do is to attempt to gracefully instantiate it using the current
-        # payload.
-        payload = klass.import(self)
+        payload = klass.import(self) # It's a subtyping hack but works.
         payload.valid?
       end
     end
@@ -164,18 +159,30 @@ module Erlen
       if mname.to_s.end_with?('=')
         __assign_attribute(mname[0..-2].to_sym, value)
       else
-        raise NoAttributeError.new(mname) unless @attributes.include?(mname.to_sym)
-
-        @attributes[mname.to_sym]
+        if @attributes.include?(mname.to_sym)
+          @attributes[mname.to_sym]
+        elsif self.class.subtype_allowed
+          @subtype_attributes[mname.to_sym]
+        else
+          raise NoAttributeError.new(mname)
+        end
       end
     end
 
     protected
 
-    def __init_payload(obj)
-      raise InvalidRawPayloadError unless obj.class <= BaseSchema # cannot use is_a?
-      obj.class.schema_attributes.each_pair do |k, attr|
-        v = obj.send(k)
+    # Initialize all instance variables here so subclasses can use it too.
+    def __init_inst_vars
+      @valid = nil
+      @attributes = {}
+      @subtype_attributes = {}
+      @errors = []
+    end
+
+    def __init_with_payload(payload)
+      raise InvalidRawPayloadError unless payload.class <= BaseSchema # cannot use is_a?
+      payload.class.schema_attributes.each_pair do |k, attr|
+        v = payload.send(k)
         __assign_attribute(k, v)
       end
     end
@@ -207,13 +214,14 @@ module Erlen
 
     def __assign_attribute(name, value)
       name = name.to_sym
-      raise NoAttributeError unless @attributes.include?(name)
-
-      attr = self.class.schema_attributes[name]
-      # value = attr.type.new(value) if attr.type <= BaseSchema
-
-      @valid = nil # a value is dirty so not valid anymore until next validation
-      @attributes[name] = value
+      if @attributes.include?(name)
+        @attributes[name] = value
+        @valid = nil # a value is dirty so not valid anymore until next validation
+      elsif self.class.subtype_allowed
+        @subtype_attributes[name] = value
+      else
+        raise NoAttributeError unless @attributes.include?(name)
+      end
     end
 
   end
