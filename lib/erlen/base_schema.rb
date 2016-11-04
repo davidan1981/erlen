@@ -102,6 +102,13 @@ module Erlen
       @valid ||= __validate_payload
     end
 
+    # A payload is an instance of a schema only if
+    #   - the payload is an instance of the schema
+    #   - or the payload is an instance of a schema that is a subclass of
+    #     the specified schema class.
+    #
+    # @param klass [Class] a class object that is a subclass of BaseSchema.
+    # @return [Boolean] true if the payload is an instance of the schema.
     def is_a?(klass)
       klass <= BaseSchema && (klass == self.class || (klass.subclass_allowed && self.is_a?(klass)))
     end
