@@ -23,6 +23,14 @@ module Erlen
       # List of validation procs to run at valid?
       attr_accessor :validator_procs
 
+      # Determines whether subclassing is allowed (considered valid)
+      attr_accessor :subclass_allowed
+
+      # Allows subclass of this schema to be valid. Use this with caution.
+      def allow_subclass(allow)
+        subclass_allowed = allow
+      end
+
       # Defines an attribute for the schema. Must specify the type. If
       # validation block is specified, the block will be executed at
       # validation.
@@ -110,9 +118,17 @@ module Erlen
         obj_attribute_name = attr.obj_attribute_name.to_sym
 
         default_val = attr.options[:default]
-        attr_val = obj.respond_to?(obj_attribute_name) ?
-          obj.send(obj_attribute_name) :
-          Undefined.new
+        if obj.is_a? BaseSchema
+          begin
+            attr_val = obj.send(k)
+          rescue NoAttributeError
+            attr_val = Undefined.new
+          end
+        else
+          attr_val = obj.respond_to?(obj_attribute_name) ?
+            obj.send(obj_attribute_name) :
+            Undefined.new
+        end
 
         __assign_attribute(k, (attr_val || default_val))
       end

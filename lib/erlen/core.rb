@@ -1,4 +1,3 @@
-
 class Boolean; end
 
 module Erlen

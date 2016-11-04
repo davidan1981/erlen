@@ -8,3 +8,48 @@ regardless of the protocol--e.g., HTTP, RPC, Ruby call, and etc. In other
 words, Erlen allows you to define contracts and share them across different
 services and also enforce what is defined in the contracts.
 
+## Installation
+
+TBD
+
+## Definitions
+
+* Schema - a contract definition that includes a list of attributes and
+validations. It is represented as a class which inherits from
+`Erlen::BaseSchema`.
+* Payload - an instance of Schema. It is an actual piece of data that has
+been validated against its schema definition.
+
+## Usage
+
+The idea of Erlen is to define a set of schemas that work as contracts for
+actions taken between two parties. For instance, let's assume we have
+`JobsController` that does simple CRUD on job resources. We can define the
+following schemas
+
+    class BaseJobSchema < Erlen::BaseSchema
+      attribute :name, String, required: true
+      attribute :
+
+
+    class JobsController
+      include Erlen::ControllerHelper
+
+      action_schema :create, request: CreateJobRequestSchema, response: JobSchema
+      action_schema :update, request: UpdateJobRequestSchema, response: JobSchema
+      action_schema :show, response: JobSchema
+    end
+
+## Pre-defined Schemas
+
+For your convenience, we have defined a few schemas in the Erlen library.
+
+* `EmptySchema` - there is nothing in this schema.
+* `AnySchema` - this is a special schema definition that allows _any_
+content.
+
+## Advanced Topics
+
+### Typing
+
+TBD
