@@ -1,5 +1,30 @@
 require 'spec_helper'
 
+describe Erlen::EmptySchema do
+  subject { described_class }
+
+  class TestEmptySchema < Erlen::BaseSchema
+    attribute :empty, Erlen::EmptySchema
+  end
+
+  class NotEmptySchema < Erlen::BaseSchema
+    attribute :blah, String, required: true
+  end
+
+  describe "validate" do
+    it "validates empty object" do
+      empty = Erlen::EmptySchema.new
+      expect(empty.valid?).to be_truthy
+      test = TestEmptySchema.new(empty: empty)
+      expect(test.valid?).to be_truthy
+      not_empty = NotEmptySchema.new(blah: "blah")
+      expect(not_empty.valid?).to be_truthy
+      test = TestEmptySchema.new(empty: not_empty)
+      expect(test.valid?).to be_falsey
+    end
+  end
+end
+
 describe Erlen::OneOf do
   subject { described_class }
 
@@ -16,6 +41,7 @@ describe Erlen::OneOf do
   end
 
   DogOrCat = Erlen::OneOf.new(Dog, Cat)
+  CowOrNothing = Erlen::OneOf.new(Cow, Erlen::EmptySchema)
 
   describe "validate" do
     it "validates as long as one schema matches" do
@@ -29,6 +55,15 @@ describe Erlen::OneOf do
       cow = Cow.new(moo: true)
       dog_or_cat = DogOrCat.new(cow)
       expect(dog_or_cat.valid?).to be_falsey
+    end
+    it "validates optional schema" do
+      cow_or_nothing = CowOrNothing.new({})
+      expect(cow_or_nothing).to be_truthy
+      cow = Cow.new(moo: true)
+      cow_or_nothing = CowOrNothing.new(cow)
+      expect(cow_or_nothing.valid?).to be_truthy
+      cow_or_nothing = CowOrNothing.new(woof: true)
+      expect(cow_or_nothing.valid?).to be_falsey
     end
   end
 end

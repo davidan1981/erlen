@@ -12,7 +12,7 @@ describe Erlen::BaseSchema do
     end
 
     it "sets all the values given an object" do
-      payload = TestBaseSchema.new(TestObj.new)
+      payload = TestBaseSchema.import(TestObj.new)
 
       expect(payload.class.schema_attributes).to include(:foo)
       expect(payload.foo).to eq('bar')

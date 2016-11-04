@@ -23,23 +23,26 @@ module Erlen
       # List of validation procs to run at valid?
       attr_accessor :validator_procs
 
-      # Determines whether subclassing is allowed (considered valid)
-      attr_accessor :subclass_allowed
+      # Determines whether subtypeing is allowed (considered valid)
+      attr_accessor :subtype_allowed
 
-      # Allows subclass of this schema to be valid. Use this with caution.
-      def allow_subclass(allow)
-        @@subclass_allowed = allow
+      # Allows subtype of this schema to be valid. Use this with caution.
+      #
+      # @param allow [Boolean] if set to true, this schema will allow
+      #                        subtypes
+      def allow_subtype(allow)
+        @@subtype_allowed = allow
       end
 
       # Defines an attribute for the schema. Must specify the type. If
       # validation block is specified, the block will be executed at
       # validation.
       #
-      # @params name [Symbol] the name of attribute
-      # @params type [Class] it must be either a primitive type or a
+      # @param name [Symbol] the name of attribute
+      # @param type [Class] it must be either a primitive type or a
       #                      BaseSchema class.
-      # @params opts [Hash, nil] options
-      # @params validation [Proc, nil] optinal validation block.
+      # @param opts [Hash, nil] options
+      # @param validation [Proc, nil] optinal validation block.
       def attribute(name, type, opts={}, &validation)
         attr = Attribute.new(name.to_sym, type, opts, &validation)
         schema_attributes[name.to_sym] = attr
@@ -48,11 +51,45 @@ module Erlen
       # Defines a custom validation block. Must specify message which is
       # used to identify the validation in case of an error.
       #
-      # @params message [String, Symbol] a simple message/name of the
+      # @param message [String, Symbol] a simple message/name of the
       #                                  validation.
-      # @params blk [Proc] the validation code block
+      # @param blk [Proc] the validation code block
       def validate(message, &blk)
         validator_procs << [message, blk]
+      end
+
+      # Imports from an object. This is different from instantiating the
+      # class with a hash or a schema object because it looks for attributes
+      # from the specified object gracefully.
+      #
+      # @param obj [Object] any object
+      # @return BaseSchema the concrete schema object.
+      def import(obj)
+        payload = self.new
+
+        schema_attributes.each_pair do |k, attr|
+          obj_attribute_name = attr.obj_attribute_name.to_sym
+
+          default_val = attr.options[:default]
+          if obj.class <= BaseSchema # cannot use is_a?
+            begin
+              attr_val = obj.send(k)
+            rescue NoAttributeError => e
+              attr_val = default_val || Undefined.new
+            end
+          else
+            if obj.respond_to?(obj_attribute_name)
+              attr_val = obj.send(obj_attribute_name)
+            else
+              attr_val = default_val || Undefined.new
+            end
+          end
+
+          # private method so use send
+          payload.send(:__assign_attribute, k, (attr_val || default_val))
+        end
+
+        payload
       end
 
       def inherited(klass)
@@ -60,8 +97,9 @@ module Erlen
         klass.schema_attributes = attrs
         procs = self.validator_procs.nil? ? [] : self.validator_procs.clone
         klass.validator_procs = procs
-        klass.subclass_allowed = false # by default
+        klass.subtype_allowed = false # by default
       end
+
     end
 
     # There are two ways to initialize a payload: (1) by specifying a Hash
@@ -69,7 +107,7 @@ module Erlen
     # names. The initialization is graceful--i.e., no error will be thrown
     # if the source object doesn't have certain attributes OR has additional
     # attributes.
-    def initialize(obj)
+    def initialize(obj = {})
       @valid = nil
       @attributes = {}
       @errors = []
@@ -88,7 +126,7 @@ module Erlen
         end
 
       else
-        __init_object(obj)
+        __init_payload(obj)
 
       end
     end
@@ -104,13 +142,22 @@ module Erlen
 
     # A payload is an instance of a schema only if
     #   - the payload is an instance of the schema
-    #   - or the payload is an instance of a schema that is a subclass of
-    #     the specified schema class.
+    #   - or the type of payload is a subtype of the specified schema.
     #
-    # @param klass [Class] a class object that is a subclass of BaseSchema.
-    # @return [Boolean] true if the payload is an instance of the schema.
+    # @param klass [Class] a class object that is a subtype of BaseSchema.
+    # @return [Boolean] true if payload is considered of the specified type.
     def is_a?(klass)
-      klass <= BaseSchema && (klass == self.class || (klass.subclass_allowed && self.is_a?(klass)))
+      if !(klass <= BaseSchema)
+        false
+      elsif (klass == self.class)
+        true
+      elsif klass.subtype_allowed
+        # It's a hack but works. If klass allows subtyping, then all we need
+        # to do is to attempt to gracefully instantiate it using the current
+        # payload.
+        payload = klass.import(self)
+        payload.valid?
+      end
     end
 
     def method_missing(mname, value=nil)
@@ -125,24 +172,11 @@ module Erlen
 
     protected
 
-    def __init_object(obj)
-      self.class.schema_attributes.each_pair do |k, attr|
-        obj_attribute_name = attr.obj_attribute_name.to_sym
-
-        default_val = attr.options[:default]
-        if obj.class <= BaseSchema
-          begin
-            attr_val = obj.send(k)
-          rescue NoAttributeError
-            attr_val = Undefined.new
-          end
-        else
-          attr_val = obj.respond_to?(obj_attribute_name) ?
-            obj.send(obj_attribute_name) :
-            Undefined.new
-        end
-
-        __assign_attribute(k, (attr_val || default_val))
+    def __init_payload(obj)
+      raise InvalidRawPayloadError unless obj.class <= BaseSchema # cannot use is_a?
+      obj.class.schema_attributes.each_pair do |k, attr|
+        v = obj.send(k)
+        __assign_attribute(k, v)
       end
     end
 
@@ -176,7 +210,7 @@ module Erlen
       raise NoAttributeError unless @attributes.include?(name)
 
       attr = self.class.schema_attributes[name]
-      value = attr.type.new(value) if attr.type <= BaseSchema
+      # value = attr.type.new(value) if attr.type <= BaseSchema
 
       @valid = nil # a value is dirty so not valid anymore until next validation
       @attributes[name] = value

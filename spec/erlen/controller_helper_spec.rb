@@ -19,7 +19,7 @@ describe Erlen::ControllerHelper do
       @response = OpenStruct.new
     end
     def render(options={}, extra_options={}, &blk)
-      response.body = JSON.dump(options[:json])
+      response.body = options[:json]
     end
   end
 
@@ -30,7 +30,7 @@ describe Erlen::ControllerHelper do
     action_schema :show, response: JobResponseSchema
 
     def create
-      job = JobResponseSchema.new(request_schema)
+      job = JobResponseSchema.new(request_payload)
       job.id = 1
       render payload: job, status: 201
     end
@@ -41,7 +41,7 @@ describe Erlen::ControllerHelper do
         name: "bar",
         organization_id: 999
       }
-      render json: job, status: 200
+      render json: job.to_json, status: 200
     end
   end
 
