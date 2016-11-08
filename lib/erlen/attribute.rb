@@ -28,6 +28,10 @@ module Erlen
     # The name of the attribute object. Alias takes the precendence over
     # name.
     #
+    # XXX: [david] I'm not so sure about this feature. It is not specific to
+    # the schema attribute but rather for importing. I think this feature
+    # should be schema specific.
+    #
     # @return [String] the alias or name of the attribute
     def obj_attribute_name
       options[:alias] || name
