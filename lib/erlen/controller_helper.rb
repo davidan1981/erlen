@@ -77,9 +77,9 @@ module Erlen
     # signature for the method to avoid confusion.
     # http://apidock.com/rails/ActionController/Base/render
     #
-    # @params options [Hash]
-    # @params extra_options [Hash]
-    # @params block [Proc]
+    # @param options [Hash]
+    # @param extra_options [Hash]
+    # @param block [Proc]
     #
     def render(options={}, extra_options={}, &block)
       if options.include?(:payload)

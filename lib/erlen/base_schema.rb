@@ -9,8 +9,8 @@ module Erlen
   # method.
   #
   # @note Be careful when defining a method inside this class. It must use a
-  # prefix to avoid conflicts with attribute names that may be defined
-  # later by the user.
+  #       prefix to avoid conflicts with attribute names that may be defined
+  #       later by the user.
   class BaseSchema
 
     # List of error messages
@@ -29,7 +29,7 @@ module Erlen
       #
       # @param name [Symbol] the name of attribute
       # @param type [Class] it must be either a primitive type or a
-      #                      BaseSchema class.
+      #                     BaseSchema class.
       # @param opts [Hash, nil] options
       # @param validation [Proc, nil] optinal validation block.
       def attribute(name, type, opts={}, &validation)
