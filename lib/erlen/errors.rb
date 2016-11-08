@@ -8,8 +8,8 @@ module Erlen
       e.errors = errors
     end
   end
-  class InvalidRawPayloadError < StandardError; end
-  class NoAttributeError < StandardError; end
+  class InvalidPayloadError < StandardError; end
   class NoPayloadError < StandardError; end
+  class NoAttributeError < StandardError; end
   class SchemaNotDefinedError < StandardError; end
 end

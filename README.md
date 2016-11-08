@@ -14,11 +14,16 @@ TBD
 
 ## Definitions
 
-* Schema - a contract definition that includes a list of attributes and
+### Schema 
+
+A contract definition that includes a list of attributes and
 validations. It is represented as a class which inherits from
 `Erlen::BaseSchema`.
-* Payload - an instance of Schema. It is an actual piece of data that has
-been validated against its schema definition.
+
+### Payload
+
+An instance of `BaseSchema` or its descendents with actual data. For
+instance, `Erlen::BaseSchema.new` is a payload.
 
 ## Usage
 

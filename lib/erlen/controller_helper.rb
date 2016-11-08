@@ -100,7 +100,7 @@ module Erlen
     # particular method is only used to retrieve the request payload.
     def request_payload
       # raise NoPayloadError if @request_payload.nil?
-      @request_schema.new(@request_payload) if @request_payload
+      @request_schema.import(@request_payload) if @request_payload
     end
 
     # Reads the current response payload, an instance of BaseSchema class.

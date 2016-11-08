@@ -8,7 +8,17 @@ module Erlen
   end
 
   class AnySchema < BaseSchema
-    allow_subtype true
+
+    # AnySchema is always valid.
+    #
+    # @return [Boolean] true always
+    def valid?; true end
+
+    protected
+
+    def __assign_attribute(k, v)
+      @attributes[k] = v
+    end
   end
 
   class ResourceSchema < BaseSchema
@@ -26,31 +36,45 @@ module Erlen
     # @return [BaseSchema] a dynamically created class <= BaseSchema.
     def self.new(*args)
       allowed_schemas = args
-      klass = Class.new(BaseSchema) do |klass|
+      Class.new(BaseSchema) do |klass|
         class << klass
           attr_accessor :allowed_schemas
-        end
-        klass.allowed_schemas = allowed_schemas
-        validate("Schema is not validated as an allowed schema") {|payload| !payload.matched_schema.nil? }
-        def initialize(obj)
-          @obj = obj
-          __init_inst_vars
-        end
-        def self.name
-          "AnyOf#{self.allowed_schemas.map {|s| s.name}.join("_")}"
-        end
-        def matched_schema
-          index = self.class.allowed_schemas.index {|s| s.new(@obj).valid? }
-          index.nil? ? nil : self.class.allowed_schemas[index]
-        end
-        def is_a?(schema)
-          super || valid? && self.class.allowed_schemas.any? do |s|
-            s == schema || (s.subtype_allowed && schema <= s) ||
-                (schema.subtype_allowed && s <= schema)
+
+          def name
+            "AnyOf#{self.allowed_schemas.map {|s| s.name}.join("_")}"
+          end
+
+          def import(obj)
+            schema = allowed_schemas.find do |s| s.import(obj).valid? end
+            payload = schema.import(obj) if schema
+            hash = BaseSerializer.payload_to_data(payload) if payload
+            new(hash)
           end
         end
+
+        klass.allowed_schemas = allowed_schemas
+
+        validate("Schema is not validated as an allowed schema") do |payload|
+          !payload.matched_schema_payload.nil?
+        end
+
+        def initialize(obj = {})
+          @obj = obj # placeholder
+          __init_inst_vars
+        end
+
+        def matched_schema_payload
+          self.class.allowed_schemas.find do |s|
+            s.new(@obj).valid?
+          end
+        end
+
+        def is_a?(schema)
+          # TODO: Must be transitive. AnyOf(AnyOf(A)) == AnyOf(A), for
+          # example.
+          super || (self.class.allowed_schemas.any? {|s| s == schema })
+        end
       end
-      klass
     end
   end
 

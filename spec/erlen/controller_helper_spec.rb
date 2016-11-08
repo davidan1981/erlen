@@ -30,7 +30,7 @@ describe Erlen::ControllerHelper do
     action_schema :show, response: JobResponseSchema
 
     def create
-      job = JobResponseSchema.new(request_payload)
+      job = JobResponseSchema.import(request_payload)
       job.id = 1
       render payload: job, status: 201
     end

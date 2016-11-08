@@ -23,18 +23,6 @@ module Erlen
       # List of validation procs to run at valid?
       attr_accessor :validator_procs
 
-      # Determines whether subtypeing is allowed (considered valid)
-      attr_accessor :subtype_allowed
-
-      # Allows subtype of this schema to be valid. Use this with caution.
-      # It's a pandora's box.
-      #
-      # @param allow [Boolean] if set to true, this schema will allow
-      #                        subtypes
-      def allow_subtype(allow)
-        self.subtype_allowed = allow
-      end
-
       # Defines an attribute for the schema. Must specify the type. If
       # validation block is specified, the block will be executed at
       # validation.
@@ -59,9 +47,9 @@ module Erlen
         validator_procs << [message, blk]
       end
 
-      # Imports from an object. This is different from instantiating the
-      # class with a hash or a schema object because it looks for attributes
-      # from the specified object gracefully.
+      # Imports from an object (or a payload). This is different from
+      # instantiating the class with a hash or a schema object because it
+      # looks for schema attributes from the specified object gracefully.
       #
       # @param obj [Object] any object
       # @return BaseSchema the concrete schema object.
@@ -98,16 +86,16 @@ module Erlen
         klass.schema_attributes = attrs
         procs = self.validator_procs.nil? ? [] : self.validator_procs.clone
         klass.validator_procs = procs
-        klass.subtype_allowed = false # by default
       end
 
     end
 
     # There are two ways to initialize a payload: (1) by specifying a Hash
     # or (2) by providing an object that may share some of the attribute
-    # names. The initialization is graceful--i.e., no error will be thrown
-    # if the source object doesn't have certain attributes OR has additional
-    # attributes.
+    # names. The object (whether it's a hash or payload) doesn't have to
+    # have all the attributes defined in the schema. However, it cannot have
+    # more attributes than what's defined. Use #import instead to import
+    # from a hash or an Object object without this restriction.
     def initialize(obj = {})
       __init_inst_vars
 
@@ -122,10 +110,8 @@ module Erlen
         obj.each_pair do |k, v|
           __assign_attribute(k, v)
         end
-
       else
-        __init_with_payload(obj)
-
+        raise ArgumentError
       end
     end
 
@@ -138,22 +124,18 @@ module Erlen
       @valid ||= __validate_payload
     end
 
-    # A payload is an instance of a schema only if
-    #   - the payload is an instance of the schema
-    #   - or the type of payload is a subtype of the specified schema.
+    # Determines if the payload is an instance of the specified schema
+    # class. This overrides Object#is_a? so subclassing is not considered
+    # true.
     #
-    # @param klass [Class] a class object that is a subtype of BaseSchema.
+    # TODO: we may have to dig more into how is_a? is really implemented.
+    #
+    # @param klass [Class] a schema class
     # @return [Boolean] true if payload is considered of the specified type.
     def is_a?(klass)
-      if !(klass <= BaseSchema)
-        false
-      elsif (klass == self.class)
-        true
-      elsif klass.subtype_allowed
-        payload = klass.import(self) # It's a subtyping hack but works.
-        payload.valid?
-      end
+      klass == self.class
     end
+    alias kind_of? is_a?
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
@@ -161,8 +143,6 @@ module Erlen
       else
         if @attributes.include?(mname.to_sym)
           @attributes[mname.to_sym]
-        elsif self.class.subtype_allowed
-          @subtype_attributes[mname.to_sym]
         else
           raise NoAttributeError.new(mname)
         end
@@ -175,16 +155,7 @@ module Erlen
     def __init_inst_vars
       @valid = nil
       @attributes = {}
-      @subtype_attributes = {}
       @errors = []
-    end
-
-    def __init_with_payload(payload)
-      raise InvalidRawPayloadError unless payload.class <= BaseSchema # cannot use is_a?
-      payload.class.schema_attributes.each_pair do |k, attr|
-        v = payload.send(k)
-        __assign_attribute(k, v)
-      end
     end
 
     def __validate_payload
@@ -217,8 +188,6 @@ module Erlen
       if @attributes.include?(name)
         @attributes[name] = value
         @valid = nil # a value is dirty so not valid anymore until next validation
-      elsif self.class.subtype_allowed
-        @subtype_attributes[name] = value
       else
         raise NoAttributeError unless @attributes.include?(name)
       end

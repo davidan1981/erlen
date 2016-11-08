@@ -36,7 +36,7 @@ describe Erlen::AnySchema do
     it "validates some payload as any schema payload" do
       some = SomeSchema.new(flag: true)
       expect(some.valid?).to be_truthy
-      any = Erlen::AnySchema.new(some)
+      any = Erlen::AnySchema.import(some)
       expect(any.valid?).to be_truthy
     end
   end
@@ -64,20 +64,20 @@ describe Erlen::AnyOf do
     it "validates as long as one schema matches" do
       dog = Dog.new(woof: true)
       expect(dog.valid?).to be_truthy
-      dog_or_cat = DogOrCat.new(dog)
+      dog_or_cat = DogOrCat.import(dog)
       expect(dog_or_cat.is_a? Dog).to be_truthy
       expect(dog_or_cat.is_a? Cat).to be_truthy
       expect(dog_or_cat.is_a? Cow).to be_falsey
       expect(dog_or_cat.valid?).to be_truthy
       cow = Cow.new(moo: true)
-      dog_or_cat = DogOrCat.new(cow)
+      dog_or_cat = DogOrCat.import(cow)
       expect(dog_or_cat.valid?).to be_falsey
     end
     it "validates optional schema" do
       cow_or_nothing = CowOrNothing.new({})
       expect(cow_or_nothing).to be_truthy
       cow = Cow.new(moo: true)
-      cow_or_nothing = CowOrNothing.new(cow)
+      cow_or_nothing = CowOrNothing.import(cow)
       expect(cow_or_nothing.valid?).to be_truthy
       cow_or_nothing = CowOrNothing.new(woof: true)
       expect(cow_or_nothing.valid?).to be_falsey
