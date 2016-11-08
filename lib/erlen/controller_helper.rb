@@ -32,13 +32,10 @@ module Erlen
             begin
               json = JSON.parse(request.body)
             rescue JSON::ParserError
-              raise InvalidRawPayloadError.new("Could not parse request body")
+              raise InvalidRequestError.new("Could not parse request body")
             end
             @request_payload = request_schema.new(json)
-            unless @request_payload.valid?
-              raise ValidationError.from_errors(@request_payload.errors)
-            end
-            check_payload_error!(@request_payload, request_schema)
+            raise ValidationError.from_errors(@request_payload.errors) unless @request_payload.valid?
           end
         end
         send(:"before_action", :"validate_request_schema_for_#{action}", only: action)
@@ -48,14 +45,14 @@ module Erlen
 
       def __erlen__create_after_action(action, schema)
         define_method(:"validate_response_schema_for_#{action}") do
-          return if @response_validated
+          return if @validated
           begin
             json = JSON.parse(response.body)
           rescue JSON::ParserError
-            raise InvalidRawPayloadError.new("Could not parse response body")
+            raise InvalidResponseError.new("Could not parse response body")
           end
           @response_payload = schema.new(json)
-          check_payload_error!(@response_payload, schema)
+          raise ValidationError.from_errors(@response_payload.errors) unless @response_payload.valid?
         end
       end
 
@@ -107,15 +104,10 @@ module Erlen
     # You can set this value using render().
     def response_payload
       # raise NoPayloadError if @response_payload.nil?
-      @response_payload.clone() if @response_payload
+      @response_schema.import(@response_payload) if @response_payload
     end
 
     private
-
-    def check_payload_error!(payload, schema)
-      raise InvalidRawPayloadError if payload.nil?
-      raise ValidationError.from_errors(payload.errors) unless payload.valid?
-    end
 
     def render_schema(payload, opts={}, extra_opts={}, &blk)
       raise SchemaNotDefinedError if @response_schema.nil?

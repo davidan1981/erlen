@@ -3,12 +3,12 @@ require 'spec_helper'
 describe Erlen::ControllerHelper do
 
   class JobRequestSchema < Erlen::BaseSchema
-    attribute :name, String
-    attribute :organization_id, Integer
+    attribute :name, String, required: true
+    attribute :organization_id, Integer, required: true
   end
 
   class JobResponseSchema < JobRequestSchema
-    attribute :id, Integer
+    attribute :id, Integer, required: true
   end
 
   class FauxController
@@ -76,6 +76,49 @@ describe Erlen::ControllerHelper do
       controller.validate_response_schema_for_create
       expect(controller.response_payload.valid?).to be_truthy
       expect(controller.response_schema).to be(JobResponseSchema)
+    end
+    it "invalidates malformed request body" do
+      request = OpenStruct.new
+      request.body = "notavalidjson"
+      controller.request = request
+      expect do
+        controller.validate_request_schema_for_create
+      end.to raise_error(Erlen::InvalidRequestError)
+    end
+    it "invalidates malformed response body" do
+      response = OpenStruct.new
+      response.body = "notavalidjson"
+      controller.response = response
+      expect do
+        controller.validate_response_schema_for_create
+      end.to raise_error(Erlen::InvalidResponseError)
+    end
+    it "invalidates inappropriate request payload" do
+      request = OpenStruct.new
+      request.body = '{"wrongattribute": "foo"}'
+      controller.request = request
+      expect do
+        controller.validate_request_schema_for_create
+      end.to raise_error(Erlen::NoAttributeError)
+      request = OpenStruct.new
+      request.body = '{}'
+      controller.request = request
+      expect do
+        controller.validate_request_schema_for_create
+      end.to raise_error(Erlen::ValidationError)
+    end
+    it "invalidates inappropriate response payload" do
+      response = OpenStruct.new
+      response.body = '{"wrongattribute": "bar"}'
+      controller.response = response
+      expect do
+        controller.validate_response_schema_for_create
+      end.to raise_error(Erlen::NoAttributeError)
+      response.body = '{}'
+      controller.response = response
+      expect do
+        controller.validate_response_schema_for_create
+      end.to raise_error(Erlen::ValidationError)
     end
   end
 end
