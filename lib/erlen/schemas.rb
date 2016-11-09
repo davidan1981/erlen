@@ -103,6 +103,21 @@ module Erlen
           def name
             "ArrayOf#{elementSchema.name}"
           end
+
+          # Imports from an array of objects (or payloads). This is different from
+          # instantiating the class with an array hashes or schema objects because it
+          # looks for schema attributes from the specified objects gracefully.
+          #
+          # @param array of objs [Object] any objects
+          # @return BaseSchema the concrete schema object.
+          def import(obj_elements)
+            payload = self.new
+            obj_elements.each do |obj|
+              payload.elements << element_schema.import(obj)
+            end
+
+            payload
+          end
         end
 
         klass.element_schema = elementSchema
@@ -111,8 +126,15 @@ module Erlen
           payload.elements.index {|e| !e.is_a?(payload.class.element_schema) || !e.valid? }.nil?
         end
 
+        # Composes an array where the values are the data equivelant of each element.
+        #
+        # @return [Hash] the payload data
+        def to_data
+          @elements.map {|e| e.to_data }
+        end
+
         def initialize(elements=[])
-          @elements = elements
+          @elements = elements.to_a
           __init_inst_vars
         end
 
@@ -125,7 +147,7 @@ module Erlen
         end
 
         def is_a?(schema)
-          schema <= BaseSchema && schema.responds_to?(:element_schema) &&
+          schema <= BaseSchema && schema.respond_to?(:element_schema) &&
               schema.element_schema == self.class.element_schema
         end
       end

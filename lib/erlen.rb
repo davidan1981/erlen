@@ -1,6 +1,5 @@
 require_relative 'erlen/errors'
 require_relative 'erlen/attribute'
-require_relative 'erlen/partial_schema'
 require_relative 'erlen/base_schema'
 require_relative 'erlen/json_serializer'
 require_relative 'erlen/base_serializer'

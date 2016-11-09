@@ -8,9 +8,8 @@ module Erlen
 
     def self.payload_to_data(payload)
       return nil unless payload.valid?
-      attrs = payload.class.schema_attributes
 
-      Hash[attrs.map { |k, attr| [attr.name, payload.send(k)] }]
+      payload.to_data
     end
 
     private

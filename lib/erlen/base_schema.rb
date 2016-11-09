@@ -57,7 +57,7 @@ module Erlen
         payload = self.new
 
         schema_attributes.each_pair do |k, attr|
-          obj_attribute_name = attr.obj_attribute_name.to_sym
+          obj_attribute_name = (attr.options[:alias] || attr.name).to_sym
 
           default_val = attr.options[:default]
           if obj.class <= BaseSchema # cannot use is_a?
@@ -73,6 +73,8 @@ module Erlen
               attr_val = default_val || Undefined.new
             end
           end
+
+          attr_val = attr.type.import(attr_val || default_val) if attr.type <= BaseSchema
 
           # private method so use send
           payload.send(:__assign_attribute, k, (attr_val || default_val))
@@ -149,6 +151,23 @@ module Erlen
       end
     end
 
+    # Composes a hash where the keys are attribute names. Any values that
+    # are payloads will be flattened to hashes as well.
+    #
+    # @return [Hash] the payload data
+    def to_data
+      attrs = self.class.schema_attributes
+
+      hash = attrs.map do |k, attr|
+        val = send(k)
+        val = val.to_data if val.class <= BaseSchema
+
+        [attr.name, val]
+      end
+
+      Hash[hash]
+    end
+
     protected
 
     # Initialize all instance variables here so subclasses can use it too.
@@ -186,6 +205,11 @@ module Erlen
     def __assign_attribute(name, value)
       name = name.to_sym
       if @attributes.include?(name)
+        #If the attribute type is a schema and value is not yet a schema, then store
+        #value as a schema for easy valid check and to hash
+        attr = self.class.schema_attributes[name]
+        value = attr.type.new(value) if attr.type <= BaseSchema && !(value.class <= BaseSchema)
+
         @attributes[name] = value
         @valid = nil # a value is dirty so not valid anymore until next validation
       else

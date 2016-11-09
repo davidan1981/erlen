@@ -38,8 +38,6 @@ module Erlen
     end
 
     # Validates the specified value using the attribute-specific validation.
-    # XXX: [david] I'm not sure if we should throw an error or return
-    #      false/nil.
     #
     # @param value [Object] an actual value of the attribute to validate.
     def validate(value)
