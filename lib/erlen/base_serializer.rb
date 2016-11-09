@@ -6,10 +6,10 @@ module Erlen
       schemaClass.new(data)
     end
 
-    def self.payload_to_data(payload)
+    def self.payload_to_hash(payload)
       return nil unless payload.valid?
 
-      payload.to_data
+      payload.to_hash
     end
 
     private

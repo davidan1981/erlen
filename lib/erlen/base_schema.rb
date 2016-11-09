@@ -155,12 +155,12 @@ module Erlen
     # are payloads will be flattened to hashes as well.
     #
     # @return [Hash] the payload data
-    def to_data
+    def to_hash
       attrs = self.class.schema_attributes
 
       hash = attrs.map do |k, attr|
         val = send(k)
-        val = val.to_data if val.class <= BaseSchema
+        val = val.to_hash if val.class <= BaseSchema
 
         [attr.name, val]
       end

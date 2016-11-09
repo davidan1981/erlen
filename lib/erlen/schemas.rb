@@ -51,7 +51,7 @@ module Erlen
           def import(obj)
             schema = allowed_schemas.find do |s| s.import(obj).valid? end
             payload = schema.import(obj) if schema
-            hash = BaseSerializer.payload_to_data(payload) if payload
+            hash = BaseSerializer.payload_to_hash(payload) if payload
             new(hash)
           end
         end
@@ -129,8 +129,8 @@ module Erlen
         # Composes an array where the values are the data equivelant of each element.
         #
         # @return [Hash] the payload data
-        def to_data
-          @elements.map {|e| e.to_data }
+        def to_hash
+          @elements.map {|e| e.to_hash }
         end
 
         def initialize(elements=[])

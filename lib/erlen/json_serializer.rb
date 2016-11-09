@@ -10,7 +10,7 @@ module Erlen
     end
 
     def self.to_json(payload)
-      data = payload_to_data(payload)
+      data = payload_to_hash(payload)
       data.to_json if data
     end
   end
