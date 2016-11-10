@@ -1,6 +1,6 @@
 module Erlen
   class BaseSerializer
-    def self.data_to_payload(data, schemaClass)
+    def self.hash_to_payload(data, schemaClass)
       data = convert_hash_keys(data)
 
       schemaClass.new(data)
