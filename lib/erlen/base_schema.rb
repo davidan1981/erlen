@@ -137,7 +137,6 @@ module Erlen
     def is_a?(klass)
       klass == self.class
     end
-    alias kind_of? is_a?
 
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')

@@ -66,7 +66,7 @@ describe Erlen::AnyOf do
       expect(dog.valid?).to be_truthy
       dog_or_cat = DogOrCat.import(dog)
       expect(dog_or_cat.is_a? Dog).to be_truthy
-      expect(dog_or_cat.is_a? Cat).to be_truthy
+      expect(dog_or_cat.is_a? Cat).to be_falsey
       expect(dog_or_cat.is_a? Cow).to be_falsey
       expect(dog_or_cat.valid?).to be_truthy
       cow = Cow.new(moo: true)
@@ -81,6 +81,20 @@ describe Erlen::AnyOf do
       expect(cow_or_nothing.valid?).to be_truthy
       cow_or_nothing = CowOrNothing.new(woof: true)
       expect(cow_or_nothing.valid?).to be_falsey
+    end
+  end
+
+  describe "proxy" do
+    it "proxys reader and writer" do
+      dog = Dog.new(woof: true)
+      expect(dog.valid?).to be_truthy
+      dog_or_cat = DogOrCat.import(dog)
+      dog_or_cat.woof = false
+      expect(dog_or_cat.woof).to be_falsey
+      expect do
+        dog_or_cat.meow = false
+      end.to raise_error(Erlen::NoAttributeError)
+      expect(dog_or_cat.to_hash).to eq({"woof" => false})
     end
   end
 end

@@ -34,9 +34,12 @@ module Erlen
   class AnyOf
     # This class method will return a new class that is catered to the
     # specified schemas. This schema class represents _any_ of the specified
-    # schemas.
+    # schemas. It also works as a proxy to the intended schema payload. The
+    # catch is that the payload must be identified at the time of
+    # instantiation. That is, at the time of AnyOf instantiation, the
+    # purpose (the intended schema) must be clear.
     #
-    # @param args [Array]
+    # @param args [Array] an array of schemas to allow
     # @return [BaseSchema] a dynamically created class <= BaseSchema.
     def self.new(*args)
       allowed_schemas = args
@@ -54,34 +57,58 @@ module Erlen
             hash = BaseSerializer.payload_to_hash(payload) if payload
             new(hash)
           end
+
         end
 
         klass.allowed_schemas = allowed_schemas
 
         validate("Schema is not validated as an allowed schema") do |payload|
-          !payload.send(:__matched_schema_payload).nil?
+          !payload.payload.nil? && payload.payload.valid?
         end
 
+        # the actual payload object of the intended schema.
+        attr_reader :payload
+
         def initialize(obj = {})
-          @obj = obj # placeholder
           __init_inst_vars
+          if obj.class <= BaseSchema
+            @payload = obj
+          elsif obj.is_a? Hash
+            __matched_schema_payload(obj)
+          end
         end
 
         def is_a?(schema)
-          # TODO: Must be transitive. AnyOf(AnyOf(A)) == AnyOf(A), for
-          # example.
-          super || (self.class.allowed_schemas.any? {|s| s == schema })
+          super || @payload.is_a?(schema)
+        end
+
+        def method_missing(mname, value=nil)
+          @payload.method_missing(mname, value)
+        end
+
+        def to_hash
+          @payload.to_hash
         end
 
         protected
 
-        def __matched_schema_payload
-          self.class.allowed_schemas.find do |s|
-            s.new(@obj).valid?
+        # Matches the first schema possible and registers the payload
+        def __matched_schema_payload(hash)
+          self.class.allowed_schemas.each do |s|
+            begin
+              @payload = s.new(hash)
+              break
+            rescue
+              # nothing
+            end
           end
         end
       end
     end
+  end
+
+  def self.any_of(*args)
+    AnyOf.new(*args)
   end
 
   # This class dynamically generates a concrete schema class that represents
@@ -152,6 +179,10 @@ module Erlen
         end
       end
     end
+  end
+
+  def self.array_of(elementSchema)
+    ArrayOf.new(elementSchema)
   end
 
   # This class dynamically generates a concrete schema class that represents
