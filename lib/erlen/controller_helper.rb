@@ -30,11 +30,13 @@ module Erlen
           @response_schema = response_schema
           if request_schema
             begin
-              json = JSON.parse(request.body)
+              data = request.request_parameters
+              data = data[:data] if data.is_a?(Hash)
+
+              @request_payload = Erlen::JSONSerializer.from_json(data, request_schema)
             rescue JSON::ParserError
               raise InvalidRequestError.new("Could not parse request body")
             end
-            @request_payload = request_schema.new(json)
             raise ValidationError.from_errors(@request_payload.errors) unless @request_payload.valid?
           end
         end
@@ -55,7 +57,6 @@ module Erlen
           raise ValidationError.from_errors(@response_payload.errors) unless @response_payload.valid?
         end
       end
-
     end
 
     # When this module is included, extend the class to have class methods
@@ -110,7 +111,6 @@ module Erlen
     private
 
     def render_schema(payload, opts={}, extra_opts={}, &blk)
-      raise SchemaNotDefinedError if @response_schema.nil?
       raise ValidationError.from_errors(payload.errors) unless payload.valid?
       opts.update({json: Erlen::JSONSerializer.to_json(payload)})
       render(opts, extra_opts, &blk) # NOTE: indirect recursion!

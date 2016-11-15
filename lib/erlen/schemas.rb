@@ -7,7 +7,6 @@ module Erlen
   # This class represents any payload. Any other schema can be a AnySchema
   # instance.
   class AnySchema < BaseSchema
-
     # AnySchema is always valid.
     #
     # @return [Boolean] true always
@@ -139,6 +138,11 @@ module Erlen
           # @return BaseSchema the concrete schema object.
           def import(obj_elements)
             payload = self.new
+
+            if obj_elements.class <= BaseSchema
+              obj_elements = obj_elements.elements
+            end
+
             obj_elements.each do |obj|
               payload.elements << element_schema.import(obj)
             end
@@ -161,7 +165,13 @@ module Erlen
         end
 
         def initialize(elements=[])
-          @elements = elements.to_a
+          @elements = elements.map do |elem|
+            if self.class.element_schema <= BaseSchema
+              self.class.element_schema.new(elem)
+            else
+              elem
+            end
+          end
           __init_inst_vars
         end
 
