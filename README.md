@@ -99,7 +99,8 @@ payload.
 payload
 * `ResourceSchema`: This schema represents a resource payload which includes
 `id` and timestamp fields, `created_at` and `updated_at`.
-* `AnyOf`: This allows any payload whose schema is one of the specified.
+* `AnyOf`: This allows any payload whose schema is one of the specified
+schemas.
 * `ArrayOf`: This schema represents a list of payloads of the specified
 type.
 * `ResourceListOf`: Similar to `ArrayOf` but has a structure as defined in

@@ -1,6 +1,7 @@
 module Erlen
   # This class dynamically generates a concrete schema class that represents
-  # a union type of multiple allowed types.
+  # a union type of multiple allowed types. Unlike ArrayOf, this does not
+  # allow primitive type.
   class AnyOf
     # This class method will return a new class that is catered to the
     # specified schemas. This schema class represents _any_ of the specified
