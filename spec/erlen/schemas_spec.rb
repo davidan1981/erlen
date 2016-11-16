@@ -111,21 +111,46 @@ describe Erlen::ArrayOf do
   end
 
   BasketOfApples = Erlen::ArrayOf.new(Apple)
+  Numbers = Erlen::ArrayOf.new(Numeric)
 
   describe "validate" do
     it "validates apple and not pear" do
       apple = Apple.new(poisonous: true)
       expect(apple.valid?).to be_truthy
       basket = BasketOfApples.new
-      basket.elements << apple
+      basket << apple
       expect(basket.valid?).to be_truthy
-      basket.elements << apple
+      basket << apple
       expect(basket.valid?).to be_truthy
       pear = Pear.new(sweet: false)
-      basket.elements << pear
+      basket << pear
       expect(basket.valid?).to be_falsey
-      basket.elements.pop
+      basket.pop
       expect(basket.valid?).to be_truthy
+    end
+
+    it "validates primitive types" do
+      numbers = Numbers.new
+      numbers << 1
+      expect(numbers.valid?).to be_truthy
+      numbers << 2.0
+      expect(numbers.valid?).to be_truthy
+      numbers << Object.new
+      expect(numbers.valid?).to be_falsey
+    end
+  end
+
+  describe "proxy" do
+    it "proxies some array methods" do
+      numbers = Numbers.new
+      numbers << 0
+      expect(numbers[0]).to eq(0)
+      numbers[0] = 1
+      expect(numbers[0]).to eq(1)
+      numbers << 2
+      numbers.each_with_index do |n, i|
+        expect(n).to eq(i + 1)
+      end
     end
   end
 

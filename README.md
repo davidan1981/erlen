@@ -68,7 +68,10 @@ By instantiating the user schema, you get a user payload.
     user_payload = UserSchema.new(
         name: "Joe Smith",
         email: "joe@smith.com",
-        org: 1
+        organization: {
+          id: 1,
+          name: "Hireology"
+        }
     )
 
 You may pass in a hash object from which attributes will be populated. If

@@ -123,7 +123,7 @@ module Erlen
     #
     # @return [Boolean] true if valid, otherwise false.
     def valid?
-      @valid ||= __validate_payload
+      __validate_payload
     end
 
     # Determines if the payload is an instance of the specified schema
@@ -171,13 +171,11 @@ module Erlen
 
     # Initialize all instance variables here so subclasses can use it too.
     def __init_inst_vars
-      @valid = nil
       @attributes = {}
       @errors = []
     end
 
     def __validate_payload
-      @valid = nil
       @errors.clear
       klass = self.class
       @attributes.each_pair do |k, v|
@@ -198,7 +196,7 @@ module Erlen
           @errors << m unless result
         end
       end
-      @valid = (@errors.size == 0)
+      @errors.size == 0
     end
 
     def __assign_attribute(name, value)
@@ -210,7 +208,6 @@ module Erlen
         value = attr.type.new(value) if attr.type <= BaseSchema && !(value.class <= BaseSchema)
 
         @attributes[name] = value
-        @valid = nil # a value is dirty so not valid anymore until next validation
       else
         raise NoAttributeError.new(name) unless @attributes.include?(name)
       end
