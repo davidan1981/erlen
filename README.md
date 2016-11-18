@@ -18,7 +18,7 @@ TBD
 
 A formal contract between two parties, defined with a set of of attributes
 and validations. It is represented as a class which inherits from
-`Erlen::BaseSchema`. Note that a schema is a _portable_ definition so there
+`Erlen::Schema::Base`. Note that a schema is a _portable_ definition so there
 is no business logic within a schema.
 
 ### Attribute
@@ -28,9 +28,8 @@ in a schema.
 
 ### Payload
 
-Also called a _schema object_. An instance of `BaseSchema` or its
-descendents with actual data. For instance, the result of
-`Erlen::BaseSchema.new` is a payload.
+Also called a _schema object_. An instance of `Erlen::Schema::Base` or its
+descendents with actual data.
 
 ## Usage
 
@@ -40,10 +39,10 @@ associations. Let's look at how one can define a schema.
 
 ### Define a Schema
 
-In order to define a schema, just inherit from `Erlen::BaseSchema`. For
+In order to define a schema, just inherit from `Erlen::Schema::Base`. For
 example, a user schema can be defined as the following:
 
-    class UserSchema < Erlen::BaseSchema
+    class UserSchema < Erlen::Schema::Base
       attribute :name, String, required: true { |a| a.length > 5 }
       attribute :email, String, required: true
       attribute :nickname, String, required: false
@@ -91,7 +90,8 @@ example.
 
 ### Pre-defined Schemas
 
-For your convenience, there are several pre-defined schemas:
+For your convenience, there are several pre-defined schemas (under `Erlen`
+namespace):
 
 * `EmptySchema`: there is nothing in this schema. It will only match empty
 payload.
@@ -127,11 +127,11 @@ accessed via `element` method.
 
 ### ControllerHelper
 
-Erlen is shipped with a Rails helper called `Erlen::ControllerHelper` which
+Erlen is shipped with a Rails helper called `Erlen::Rails::ControllerHelper` which
 can be included in a controller to associate actions with schemas.
 
     class UsersController < ApplicationConroller
-      include Erlen::ControllerHelper
+      include Erlen::Rails::ControllerHelper
 
       action_schema :index, response: ResourceListOfUsersSchema
       action_schema :create, request: UserCreateRequestSchema, response: UserResponseSchema
@@ -169,8 +169,8 @@ before the specified action to validate the raw request body and hydrate the
 data into a payload. By defining a response schema, another callback is
 registered to perform a validation on the response body.
 
-For your convenience, `Erlen::ControllerHelper` overloads `render` method so
-you can easily render a payload.
+For your convenience, `Erlen::Rails::ControllerHelper` overloads `render`
+method so you can easily render a payload.
 
     render(payload: user_payload, status: 200)
 
