@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Erlen::BaseSerializer do
+describe Erlen::Serializer::Base do
   subject { described_class }
 
   describe "#data_to_payload" do
@@ -25,7 +25,7 @@ describe Erlen::BaseSerializer do
   end
 end
 
-class TestBaseSerializerSchema < Erlen::BaseSchema
+class TestBaseSerializerSchema < Erlen::Schema::Base
   attribute :foo, String
 
   validate("Error Message") { |s| s.foo == 'bar' || s.foo == 1 }

@@ -3,11 +3,11 @@ require 'spec_helper'
 describe Erlen::EmptySchema do
   subject { described_class }
 
-  class TestEmptySchema < Erlen::BaseSchema
+  class TestEmptySchema < Erlen::Schema::Base
     attribute :empty, Erlen::EmptySchema
   end
 
-  class NotEmptySchema < Erlen::BaseSchema
+  class NotEmptySchema < Erlen::Schema::Base
     attribute :blah, String, required: true
   end
 
@@ -28,7 +28,7 @@ end
 describe Erlen::AnySchema do
   subject { described_class }
 
-  class SomeSchema < Erlen::BaseSchema
+  class SomeSchema < Erlen::Schema::Base
     attribute :flag, Boolean, required: true
   end
 
@@ -42,23 +42,23 @@ describe Erlen::AnySchema do
   end
 end
 
-describe Erlen::AnyOf do
+describe Erlen::Schema::AnyOf do
   subject { described_class }
 
-  class Dog < Erlen::BaseSchema
+  class Dog < Erlen::Schema::Base
     attribute :woof, Boolean, required: true
   end
 
-  class Cat < Erlen::BaseSchema
+  class Cat < Erlen::Schema::Base
     attribute :meow, Boolean, required: true
   end
 
-  class Cow < Erlen::BaseSchema
+  class Cow < Erlen::Schema::Base
     attribute :moo, Boolean, required: true
   end
 
-  DogOrCat = Erlen::AnyOf.new(Dog, Cat)
-  CowOrNothing = Erlen::AnyOf.new(Cow, Erlen::EmptySchema)
+  DogOrCat = Erlen::Schema::AnyOf.new(Dog, Cat)
+  CowOrNothing = Erlen::Schema::AnyOf.new(Cow, Erlen::EmptySchema)
 
   describe "validate" do
     it "validates as long as one schema matches" do
@@ -99,19 +99,19 @@ describe Erlen::AnyOf do
   end
 end
 
-describe Erlen::ArrayOf do
+describe Erlen::Schema::ArrayOf do
   subject { described_class }
 
-  class Apple < Erlen::BaseSchema
+  class Apple < Erlen::Schema::Base
     attribute :poisonous, Boolean
   end
 
-  class Pear < Erlen::BaseSchema
+  class Pear < Erlen::Schema::Base
     attribute :sweet, Boolean
   end
 
-  BasketOfApples = Erlen::ArrayOf.new(Apple)
-  Numbers = Erlen::ArrayOf.new(Numeric)
+  BasketOfApples = Erlen::Schema::ArrayOf.new(Apple)
+  Numbers = Erlen::Schema::ArrayOf.new(Numeric)
 
   describe "validate" do
     it "validates apple and not pear" do

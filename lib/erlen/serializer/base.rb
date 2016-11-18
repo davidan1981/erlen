@@ -1,5 +1,5 @@
-module Erlen
-  class BaseSerializer
+module Erlen; module Serializer
+  class Base
     def self.hash_to_payload(data, schemaClass)
       data = convert_hash_keys(data)
 
@@ -33,4 +33,4 @@ module Erlen
         downcase
     end
   end
-end
+end; end

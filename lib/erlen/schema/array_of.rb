@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Schema
   # This class dynamically generates a concrete schema class that represents
   # a collection type with a specific element type.
   class ArrayOf
@@ -23,9 +23,9 @@ module Erlen
     #
     # @param element_type [Class] the type of the elements. This can be
     #                             either a schema or a primitive type.
-    # @return [BaseSchema] a dynamically created class <= BaseClass
+    # @return [Base] a dynamically created class <= BaseClass
     def self.new(element_type)
-      Class.new(BaseSchema) do |klass|
+      Class.new(Base) do |klass|
         class << klass
 
           # Specifies the type of the element. For primitive type,
@@ -43,11 +43,11 @@ module Erlen
           # looks for schema attributes from the specified objects gracefully.
           #
           # @param array of objs [Object] any objects
-          # @return BaseSchema the concrete schema object.
+          # @return Base the concrete schema object.
           def import(obj_elements)
             payload = self.new
 
-            if obj_elements.class <= BaseSchema
+            if obj_elements.class <= Base
               obj_elements = obj_elements.elements
             end
 
@@ -65,7 +65,7 @@ module Erlen
           element_type = payload.class.element_type
           # calling a protected method, use `send`.
           payload.send(:elements).find do |e|
-            !e.is_a?(element_type) || (element_type <= BaseSchema && !e.valid?)
+            !e.is_a?(element_type) || (element_type <= Base && !e.valid?)
           end.nil?
         end
 
@@ -102,7 +102,7 @@ module Erlen
         end
 
         def is_a?(schema)
-          schema <= BaseSchema && schema.respond_to?(:element_type) &&
+          schema <= Base && schema.respond_to?(:element_type) &&
               schema.element_type == self.class.element_type
         end
 
@@ -111,7 +111,7 @@ module Erlen
         def elements; @elements end
 
         def normalize_element(element)
-          if self.class.element_type <= BaseSchema && element.is_a?(Hash)
+          if self.class.element_type <= Base && element.is_a?(Hash)
             self.class.element_type.new(element)
           else
             element
@@ -129,4 +129,4 @@ module Erlen
   def self.array_of(element_type)
     ArrayOf.new(element_type)
   end
-end
+end; end

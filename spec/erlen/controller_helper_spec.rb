@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Erlen::ControllerHelper do
+describe Erlen::Rails::ControllerHelper do
 
-  class JobRequestSchema < Erlen::BaseSchema
+  class JobRequestSchema < Erlen::Schema::Base
     attribute :name, String, required: true
     attribute :organization_id, Integer, required: true
   end
@@ -24,7 +24,7 @@ describe Erlen::ControllerHelper do
   end
 
   class JobsController < FauxController
-    include Erlen::ControllerHelper
+    include Erlen::Rails::ControllerHelper
 
     action_schema :create, request: JobRequestSchema, response: JobResponseSchema
     action_schema :show, response: JobResponseSchema

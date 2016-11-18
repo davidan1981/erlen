@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Schema
   # This class dynamically generates a concrete schema class that represents
   # a union type of multiple allowed types. Unlike ArrayOf, this does not
   # allow primitive type.
@@ -11,10 +11,10 @@ module Erlen
     # purpose (the intended schema) must be clear.
     #
     # @param args [Array] an array of schemas to allow
-    # @return [BaseSchema] a dynamically created class <= BaseSchema.
+    # @return [Base] a dynamically created class <= Base.
     def self.new(*args)
       allowed_schemas = args
-      Class.new(BaseSchema) do |klass|
+      Class.new(Base) do |klass|
         class << klass
           attr_accessor :allowed_schemas
 
@@ -25,7 +25,7 @@ module Erlen
           def import(obj)
             schema = allowed_schemas.find do |s| s.import(obj).valid? end
             payload = schema.import(obj) if schema
-            hash = BaseSerializer.payload_to_hash(payload) if payload
+            hash = payload.to_hash if payload
             new(hash)
           end
 
@@ -42,7 +42,7 @@ module Erlen
 
         def initialize(obj = {})
           __init_inst_vars
-          if obj.class <= BaseSchema
+          if obj.class <= Base
             @payload = obj
           elsif obj.is_a? Hash
             __matched_schema_payload(obj)
@@ -83,4 +83,4 @@ module Erlen
     AnyOf.new(*args)
   end
 
-end
+end; end

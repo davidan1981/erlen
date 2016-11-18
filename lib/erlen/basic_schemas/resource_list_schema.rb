@@ -3,8 +3,8 @@ module Erlen
   # a collection type for resources. It adheres to Hireology's API standard.
   class ResourceListSchema
     def self.new(resourceSchema)
-      Class.new(BaseSchema) do
-        attribute :data, ArrayOf.new(resourceSchema)
+      Class.new(Schema::Base) do
+        attribute :data, Schema::ArrayOf.new(resourceSchema)
         attribute :page, Integer
         attribute :page_size, Integer
         attribute :count, Integer

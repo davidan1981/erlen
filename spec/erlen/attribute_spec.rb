@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Erlen::Attribute do
+describe Erlen::Schema::Attribute do
   subject { described_class }
 
   describe "#initialize" do
@@ -76,6 +76,6 @@ end
 
 class Type; end
 
-class NestedSchema < Erlen::BaseSchema
+class NestedSchema < Erlen::Schema::Base
   attribute :integer, Integer
 end

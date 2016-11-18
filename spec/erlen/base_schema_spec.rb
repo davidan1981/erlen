@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Erlen::BaseSchema do
+describe Erlen::Schema::Base do
   subject { described_class }
 
   describe "#initialize" do
@@ -51,7 +51,7 @@ describe Erlen::BaseSchema do
 
 end
 
-class TestBaseSchema < Erlen::BaseSchema
+class TestBaseSchema < Erlen::Schema::Base
   attribute :foo, String
   attribute :custom, Integer
 

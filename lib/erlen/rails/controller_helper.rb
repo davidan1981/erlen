@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Rails
   # This helper module can be included in a controller to define action
   # schemas, which creates before/after action callbacks to validate
   # either/both request or/and response payloads.
@@ -15,8 +15,8 @@ module Erlen
       # validation will be skipped during the callback.
       #
       # @param action [String] the name of the action
-      # @param request [BaseSchema] the schema for request body
-      # @param response [BaseSchema] the schema for response body
+      # @param request [Schema::Base] the schema for request body
+      # @param response [Schema::Base] the schema for response body
       def action_schema(action, request: nil, response: nil)
         __erlen__create_before_action(action, request, response)
         __erlen__create_after_action(action, response)
@@ -33,7 +33,7 @@ module Erlen
               data = request.request_parameters
               data = data[:data] if data.is_a?(Hash)
 
-              @request_payload = Erlen::JSONSerializer.from_json(data, request_schema)
+              @request_payload = Erlen::Serializer::JSON.from_json(data, request_schema)
             rescue JSON::ParserError
               raise InvalidRequestError.new("Could not parse request body")
             end
@@ -93,7 +93,7 @@ module Erlen
       end
     end
 
-    # Payload is an instance of BaseSchema class, representing either a
+    # Payload is an instance of Schema::Base class, representing either a
     # request body or response body, validated against the schema. This
     # particular method is only used to retrieve the request payload.
     def request_payload
@@ -101,7 +101,7 @@ module Erlen
       @request_schema.import(@request_payload) if @request_payload
     end
 
-    # Reads the current response payload, an instance of BaseSchema class.
+    # Reads the current response payload, an instance of Schema::Base class.
     # You can set this value using render().
     def response_payload
       # raise NoPayloadError if @response_payload.nil?
@@ -112,11 +112,11 @@ module Erlen
 
     def render_schema(payload, opts={}, extra_opts={}, &blk)
       raise ValidationError.from_errors(payload.errors) unless payload.valid?
-      opts.update({json: Erlen::JSONSerializer.to_json(payload)})
+      opts.update({json: Erlen::Serializer::JSON.to_json(payload)})
       render(opts, extra_opts, &blk) # NOTE: indirect recursion!
       @validated = true # set this after recursive render()
       @response_payload = payload
     end
 
   end
-end
+end; end

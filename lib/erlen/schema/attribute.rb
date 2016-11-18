@@ -1,7 +1,7 @@
 require_relative '../core'
 require_relative '../errors'
 
-module Erlen
+module Erlen; module Schema
   # This class represents an attribute defined in a Schema class. An
   # attribute keeps track of its name, type, additional options, and a
   # attribute specific custom validation.
@@ -49,7 +49,7 @@ module Erlen
         if (value != true && value != false)
           raise ValidationError.new("#{name}: #{value} is not Boolean")
         end
-      elsif type <= BaseSchema && !value.valid?
+      elsif type <= Base && !value.valid?
         # uhh.. this can be better. not tested.
         raise ValidationError.new(value.errors.map {|m| "#{name}: #{m}" }.join("\n"))
       elsif !value.is_a? type
@@ -64,4 +64,4 @@ module Erlen
       end
     end
   end
-end
+end; end

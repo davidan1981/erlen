@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Schema
   # This class is the basis for all schemas. If a schema class inherits this
   # class, it's ready to define attributes. When a schema class inherits
   # from another schema class, it inherits all the attributes defined by the
@@ -11,7 +11,7 @@ module Erlen
   # @note Be careful when defining a method inside this class. It must use a
   #       prefix to avoid conflicts with attribute names that may be defined
   #       later by the user.
-  class BaseSchema
+  class Base
 
     # List of error messages
     attr_accessor :errors
@@ -29,7 +29,7 @@ module Erlen
       #
       # @param name [Symbol] the name of attribute
       # @param type [Class] it must be either a primitive type or a
-      #                     BaseSchema class.
+      #                     Base class.
       # @param opts [Hash, nil] options
       # @param validation [Proc, nil] optinal validation block.
       def attribute(name, type, opts={}, &validation)
@@ -52,7 +52,7 @@ module Erlen
       # looks for schema attributes from the specified object gracefully.
       #
       # @param obj [Object] any object
-      # @return BaseSchema the concrete schema object.
+      # @return Base the concrete schema object.
       def import(obj)
         payload = self.new
 
@@ -60,7 +60,7 @@ module Erlen
           obj_attribute_name = (attr.options[:alias] || attr.name).to_sym
 
           default_val = attr.options[:default]
-          if obj.class <= BaseSchema # cannot use is_a?
+          if obj.class <= Base # cannot use is_a?
             begin
               attr_val = obj.send(k)
             rescue NoAttributeError => e
@@ -74,7 +74,7 @@ module Erlen
             end
           end
 
-          attr_val = attr.type.import(attr_val || default_val) if attr.type <= BaseSchema
+          attr_val = attr.type.import(attr_val || default_val) if attr.type <= Base
 
           # private method so use send
           payload.send(:__assign_attribute, k, (attr_val || default_val))
@@ -159,7 +159,7 @@ module Erlen
 
       hash = attrs.map do |k, attr|
         val = send(k)
-        val = val.to_hash if val.class <= BaseSchema
+        val = val.to_hash if val.class <= Base
 
         [attr.name, val]
       end
@@ -205,7 +205,7 @@ module Erlen
         #If the attribute type is a schema and value is not yet a schema, then store
         #value as a schema for easy valid check and to hash
         attr = self.class.schema_attributes[name]
-        value = attr.type.new(value) if attr.type <= BaseSchema && !(value.class <= BaseSchema)
+        value = attr.type.new(value) if attr.type <= Base && !(value.class <= Base)
 
         @attributes[name] = value
       else
@@ -214,4 +214,4 @@ module Erlen
     end
 
   end
-end
+end; end
