@@ -68,7 +68,10 @@ By instantiating the user schema, you get a user payload.
     user_payload = UserSchema.new(
         name: "Joe Smith",
         email: "joe@smith.com",
-        org: 1
+        organization: {
+          id: 1,
+          name: "Hireology"
+        }
     )
 
 You may pass in a hash object from which attributes will be populated. If
@@ -96,7 +99,8 @@ payload.
 payload
 * `ResourceSchema`: This schema represents a resource payload which includes
 `id` and timestamp fields, `created_at` and `updated_at`.
-* `AnyOf`: This allows any payload whose schema is one of the specified.
+* `AnyOf`: This allows any payload whose schema is one of the specified
+schemas.
 * `ArrayOf`: This schema represents a list of payloads of the specified
 type.
 * `ResourceListOf`: Similar to `ArrayOf` but has a structure as defined in
