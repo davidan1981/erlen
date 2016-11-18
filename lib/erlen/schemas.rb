@@ -1,6 +1,0 @@
-require_relative 'schemas/empty_schema'
-require_relative 'schemas/any_schema'
-require_relative 'schemas/resource_schema'
-require_relative 'schemas/any_of'
-require_relative 'schemas/array_of'
-require_relative 'schemas/resource_list_schema'

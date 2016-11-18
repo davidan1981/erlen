@@ -1,5 +1,5 @@
-require_relative 'core'
-require_relative 'errors'
+require_relative '../core'
+require_relative '../errors'
 
 module Erlen
   # This class represents an attribute defined in a Schema class. An

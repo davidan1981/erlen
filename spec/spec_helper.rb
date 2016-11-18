@@ -15,13 +15,12 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-require_relative '../lib/erlen/attribute'
-require_relative '../lib/erlen/base_schema'
+require_relative '../lib/erlen/schema'
 require_relative '../lib/erlen/core'
 require_relative '../lib/erlen/errors'
-require_relative '../lib/erlen/schemas'
-require_relative '../lib/erlen/json_serializer'
-require_relative '../lib/erlen/controller_helper'
+require_relative '../lib/erlen/basic_schemas'
+require_relative '../lib/erlen/serializer'
+require_relative '../lib/erlen/rails'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
