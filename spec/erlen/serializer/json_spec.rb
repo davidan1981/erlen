@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Erlen::JSONSerializer do
+describe Erlen::Serializer::JSON do
   subject { described_class }
 
   describe "#from_json" do
@@ -24,7 +24,7 @@ describe Erlen::JSONSerializer do
   end
 end
 
-class TestSerializerSchema < Erlen::BaseSchema
+class TestSerializerSchema < Erlen::Schema::Base
   attribute :foo, String
 
   validate("Error Message") { |s| s.foo == 'bar' || s.foo == 1 }
