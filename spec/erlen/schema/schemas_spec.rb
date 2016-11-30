@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Erlen::EmptySchema do
+describe Erlen::Schema::Empty do
   subject { described_class }
 
   class TestEmptySchema < Erlen::Schema::Base
-    attribute :empty, Erlen::EmptySchema
+    attribute :empty, Erlen::Schema::Empty
   end
 
   class NotEmptySchema < Erlen::Schema::Base
@@ -13,7 +13,7 @@ describe Erlen::EmptySchema do
 
   describe "validate" do
     it "validates empty object" do
-      empty = Erlen::EmptySchema.new
+      empty = Erlen::Schema::Empty.new
       expect(empty.valid?).to be_truthy
       test = TestEmptySchema.new(empty: empty)
       expect(test.valid?).to be_truthy
@@ -25,7 +25,7 @@ describe Erlen::EmptySchema do
   end
 end
 
-describe Erlen::AnySchema do
+describe Erlen::Schema::Any do
   subject { described_class }
 
   class SomeSchema < Erlen::Schema::Base
@@ -36,7 +36,7 @@ describe Erlen::AnySchema do
     it "validates some payload as any schema payload" do
       some = SomeSchema.new(flag: true)
       expect(some.valid?).to be_truthy
-      any = Erlen::AnySchema.import(some)
+      any = Erlen::Schema::Any.import(some)
       expect(any.valid?).to be_truthy
     end
   end
@@ -58,7 +58,7 @@ describe Erlen::Schema::AnyOf do
   end
 
   DogOrCat = Erlen::Schema::AnyOf.new(Dog, Cat)
-  CowOrNothing = Erlen::Schema::AnyOf.new(Cow, Erlen::EmptySchema)
+  CowOrNothing = Erlen::Schema::AnyOf.new(Cow, Erlen::Schema::Empty)
 
   describe "validate" do
     it "validates as long as one schema matches" do

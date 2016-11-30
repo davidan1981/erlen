@@ -1,12 +1,11 @@
-module Erlen
+module Erlen; module Schema
   # This class represents any payload. Any other schema can be a AnySchema
   # instance.
-  class AnySchema < Schema::Base
-    # AnySchema is always valid.
+  class Any < Schema::Base
+    # Any schema is always valid.
     #
     # @note Even though some attributes may be payloads, no validation
     #       occurs.
-    #
     # @return [Boolean] true always
     def valid?; true end
 
@@ -17,4 +16,4 @@ module Erlen
       @attributes[k] = v
     end
   end
-end
+end; end

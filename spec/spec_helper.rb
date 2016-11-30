@@ -15,12 +15,7 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-require_relative '../lib/erlen/schema'
-require_relative '../lib/erlen/core'
-require_relative '../lib/erlen/errors'
-require_relative '../lib/erlen/basic_schemas'
-require_relative '../lib/erlen/serializer'
-require_relative '../lib/erlen/rails'
+require_relative '../lib/erlen'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Schema
   # This class represents empty payload.
-  class EmptySchema < Schema::Base; end
-end
+  class Empty < Schema::Base; end
+end; end

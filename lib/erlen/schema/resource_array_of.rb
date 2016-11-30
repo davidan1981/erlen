@@ -1,4 +1,4 @@
-module Erlen
+module Erlen; module Schema
   # This class dynamically generates a concrete schema class that represents
   # a collection type for resources. It adheres to Hireology's API standard.
   class ResourceArrayOf
@@ -11,4 +11,4 @@ module Erlen
       end
     end
   end
-end
+end; end
