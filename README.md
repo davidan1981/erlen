@@ -89,6 +89,9 @@ Currently, options include
 A validation block can be specified to perform an attribute-specific
 validation (as opposed to schema-wide validation).
 
+Note that validation is not completely portable. So keep in mind that custom
+validations may not be strictly enforced in other platforms.
+
 ### Validation
 
 A schema can have zero or more custom validation code. Each validation is
@@ -102,6 +105,9 @@ validate { |payload| payload.name != payload.nickname }
 ```
 
 ensures that the payload's name and nickname do not match.
+
+Note that validation is not completely portable. So keep in mind that custom
+validations may not be strictly enforced in other platforms.
 
 ### Instantiation
 
