@@ -50,13 +50,15 @@ In order to define a schema, just create a class that inherits from
 `Erlen::Schema::Base` or any of its descendents. For example, a user schema
 can be defined as the following:
 
-    class UserSchema < Erlen::Schema::Base
-      attribute :name, String, required: true { |a| a.length > 5 }
-      attribute :email, String, required: true
-      attribute :nickname, String, required: false
-      attribute :organization, OrganizationSchema, required: true
-      validate { |payload| payload.name != payload.email }
-    end
+```ruby
+class UserSchema < Erlen::Schema::Base
+  attribute :name, String, required: true { |a| a.length > 5 }
+  attribute :email, String, required: true
+  attribute :nickname, String, required: false
+  attribute :organization, OrganizationSchema, required: true
+  validate { |payload| payload.name != payload.nickname }
+end
+```
 
 ### Attribute
 
@@ -66,21 +68,21 @@ A type can be either a primitive Ruby type or a schema.
 
 Here are primitive types that are supported:
 
-* String
-* Numberic (Float, Integer, and etc.)
-* Boolean (TrueClass, FalseClass)
-* DateTime
+* `String`
+* `Numeric` (Float, Integer, and etc.)
+* `Boolean` (TrueClass, FalseClass)
+* `DateTime`
 
 Note that their subclasses are also supported whereas schema types must
 match exactly. (More explained later.)
 
 Currently, options include
 
-* required: this option flag makes the attribute a required attribute for
+* `required`: this option flag makes the attribute a required attribute for
   the schema. By default, this option is set to false.
-* alias: this option allows schema to also look into alias for importing
+* `alias`: this option allows schema to also look into alias for importing
   or initialialization.
-* default: if this option is specified, the value will be used as a default
+* `default`: if this option is specified, the value will be used as a default
   value if the corresponding attribute value is missing from the source
   data.
 
@@ -95,7 +97,9 @@ argument.
 
 For example,
 
-      validate { |payload| payload.name != payload.nickname }
+```ruby
+validate { |payload| payload.name != payload.nickname }
+```
 
 ensures that the payload's name and nickname do not match.
 
@@ -103,14 +107,16 @@ ensures that the payload's name and nickname do not match.
 
 By instantiating the user schema, you get a user payload.
 
-    user_payload = UserSchema.new(
-        name: "Joe Smith",
-        email: "joe@smith.com",
-        organization: {
-          id: 1,
-          name: "Hireology"
-        }
-    )
+```ruby
+user_payload = UserSchema.new(
+    name: "Joe Smith",
+    email: "joe@smith.com",
+    organization: {
+      id: 1,
+      name: "Hireology"
+    }
+)
+```
 
 For convenience, you may pass in a hash object from which attributes will be
 assigned. If you are using this method, the initial object must be a hash
@@ -121,7 +127,9 @@ schema. Otherwise, an `Erlen::NoAttributeError` will be thrown.
 
 Alternatively, you may use `import` method instead:
 
-    user_payload = UserSchema.import(user)
+```ruby
+user_payload = UserSchema.import(user)
+```
 
 User can be _any_ object (including a payload) possibly with some attributes
 populated. This method is more graceful than the former since any undefined
@@ -158,52 +166,60 @@ information. Here is the list of schema generators:
 
 For instance,
 
-    AnyOf.new(DogSchema, CatSchema)
+```ruby
+AnyOf.new(DogSchema, CatSchema)
+```
 
 generates a schema whose payload can be either a dog or a cat.
 
 Consider another example:
 
-    ArrayOf.new(Integer)
+```ruby
+ArrayOf.new(Integer)
+```
 
 This generates a schema that works as an array of `Integer`s. The generated
 schema has a set of Array operators as well:
 
-    ints = ArrayOf.new(Integer)
-    ints << 1
-    ints << 2
-    x = ints[0] # 1
+```ruby
+ints = ArrayOf.new(Integer)
+ints << 1
+ints << 2
+x = ints[0] # 1
+```
 
 ### ControllerHelper
 
 Erlen is shipped with a Rails helper called `Erlen::Rails::ControllerHelper` which
 can be included in a controller to associate actions with schemas.
 
-    class UsersController < ApplicationConroller
-      include Erlen::Rails::ControllerHelper
+```ruby
+class UsersController < ApplicationConroller
+  include Erlen::Rails::ControllerHelper
 
-      action_schema :index, response: ResourceListOfUsersSchema
-      action_schema :create, request: UserCreateRequestSchema, response: UserResponseSchema
-      action_schema :update, request: UserUpdateRequestSchema, response: UserResponseSchema
-      action_schema :show, response: UserResponseSchema
+  action_schema :index, response: ResourceListOfUsersSchema
+  action_schema :create, request: UserCreateRequestSchema, response: UserResponseSchema
+  action_schema :update, request: UserUpdateRequestSchema, response: UserResponseSchema
+  action_schema :show, response: UserResponseSchema
 
-      def create
-        # ...
-      end
+  def create
+    # ...
+  end
 
-      def update
-        # ...
-      end
+  def update
+    # ...
+  end
 
-      def show
-        # ...
-      end
+  def show
+    # ...
+  end
 
-      def destroy
-        # ...
-      end
+  def destroy
+    # ...
+  end
 
-    end
+end
+```
 
 It is important to note that the above example used slightly different
 schemas for different actions and between requests and response. This is
@@ -218,10 +234,12 @@ before the specified action to validate the raw request body and hydrate the
 data into a payload. By defining a response schema, another callback is
 registered to perform a validation on the response body.
 
-For your convenience, `Erlen::Rails::ControllerHelper` overloads `render`
+For your convenience, `Erlen::Rails::ControllerHelper` overrides `render`
 method so you can easily render a payload.
 
-    render(payload: user_payload, status: 200)
+```ruby
+render(payload: user_payload, status: 200)
+```
 
 This is not required, however. The advantage of using the above method is
 (1) you don't need to serialize the payload into JSON yourself, and (2)
