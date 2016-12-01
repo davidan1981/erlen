@@ -76,7 +76,7 @@ module Erlen; module Schema
         # @return [Hash] the payload data
         def to_hash
           @elements.map do |e|
-            self.class.element_type <= BaseSchema ? e.to_hash : e
+            self.class.element_type <= Base ? e.to_hash : e
           end
         end
 
