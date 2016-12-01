@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Hireology/erlen.svg?branch=master)](https://travis-ci.org/Hireology/erlen)
+[![Coverage Status](https://coveralls.io/repos/github/Hireology/erlen/badge.svg?branch=master)](https://coveralls.io/github/Hireology/erlen)
+
 # Erlen
 
 Erlen is short for
