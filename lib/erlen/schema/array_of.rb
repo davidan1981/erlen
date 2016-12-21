@@ -1,10 +1,16 @@
 module Erlen; module Schema
-  # This class dynamically generates a concrete schema class that represents
-  # a collection type with a specific element type.
+  # This class dynamically generates a concrete schema *class* that
+  # represents a collection type with a specific element type. The payload
+  # of this schema works similar to Array object.
+  #
+  # Refer to the constants defined in the class to see which Array methods
+  # are supported. Generally, the following features are NOT supported: any
+  # range parameters, start-end parameters, permutations, and
+  # multi-dimensional operation.
+  #
   class ArrayOf
-    # List all array methods that are supported right out of the box by
-    # simply proxing the message to the Ruby array of elements. (Some methods
-    # are overriden because they require pre/post processing.)
+
+    # List of methods that we simply proxy
     METHODS_TO_PROXY = [
       :[],
       :any,
@@ -23,14 +29,14 @@ module Erlen; module Schema
       :inspect,
       :join,
       :length,
-      :pop,
       :rindex,
-      # :slice,
-      :to_a
+      :slice,
+      :to_a,
+      :to_ary
     ]
 
+    # List of methods that we simply proxy but return self
     METHODS_TO_PROXY_AND_RETURN_SELF = [
-      :<<,
       :clear,
       :collect!,
       :compact!,
@@ -58,6 +64,8 @@ module Erlen; module Schema
       :unshift
     ]
 
+    # List of methods that we proxy but return the result in a new ArrayOf
+    # payload.
     METHODS_TO_PROXY_AND_RETURN_NEW = [
       :collect,
       :compact,
@@ -76,17 +84,24 @@ module Erlen; module Schema
       :values_at
     ]
 
+    # List of binary operation methods that we proxy but also check if the
+    # operand is an ArrayOf payload (and strip the payload when proxing).
     METHODS_TO_PROXY_BINARY_OP = [
       :<=>,
       :==
     ]
 
+    # List of binary operation methods that we proxy and return self. It
+    # also checks if the operand is an ArrayOf payload (and strip the
+    # payload when proxing).
     METHODS_TO_PROXY_BINARY_OP_AND_RETURN_NEW = [
       :&,
       :+,
       :-,
     ]
 
+    # Any method not listed here may have been written out. See instance
+    # methods defined below.
 
     # This class method will return a new class that represents a collection
     # schema with the specified element schema. Because of
@@ -121,8 +136,8 @@ module Erlen; module Schema
           def import(obj_elements)
             payload = self.new
 
-            if obj_elements.class <= Base && obj_elements.respond_to?(:element_type)
-              obj_elements = obj_elements.elements
+            if obj_elements.class <= Base && obj_elements.class.respond_to?(:element_type)
+              obj_elements = obj_elements.send(:elements)
             elsif obj_elements.nil? || obj_elements.is_a?(Undefined)
               obj_elements = []
             end
@@ -155,9 +170,7 @@ module Erlen; module Schema
         end
 
         def initialize(elements=[])
-          @elements = elements.map do |elem|
-            normalize_element(elem)
-          end
+          @elements = elements.map { |elem| normalize_element(elem) }
           __init_inst_vars
         end
 
@@ -170,6 +183,7 @@ module Erlen; module Schema
           end
         end
 
+        # Must normalize before assinging element
         def <<(element)
           @elements << normalize_element(element)
           self
@@ -182,31 +196,28 @@ module Erlen; module Schema
         end
 
         def first(n=nil)
-          @elements.first if n.nil?
+          return @elements.first if n.nil?
           self.class.new(@elements.first(n))
         end
 
-        def frozen
-          false
-        end
-
         def last(n=nil)
-          @elements.last if n.nil?
+          return @elements.last if n.nil?
           self.class.new(@elements.last(n))
         end
 
         def pop(n=nil)
-          @elements.pop if n.nil?
+          return @elements.pop if n.nil?
           self.class.new(@elements.pop(n))
         end
 
+        # Must normalize before assinging element, so use <<
         def push(*args)
           args.each { |arg| self << arg }
           self
         end
 
-        def shift(n)
-          @elements.shift if n.nil?
+        def shift(n=nil)
+          return @elements.shift if n.nil?
           self.class.new(@elements.shift(n))
         end
 
@@ -237,21 +248,21 @@ module Erlen; module Schema
 
         METHODS_TO_PROXY_BINARY_OP.each do |mname|
           define_method(mname) do |other, &blk|
-            raise InvalidPayloadError unless other.is_a?(Erlen::Schema::Base)
+            raise InvalidPayloadError unless other.is_a?(self.class)
             @elements.send(mname, other.send(:elements), &blk)
           end
         end
 
         METHODS_TO_PROXY_BINARY_OP_AND_RETURN_NEW.each do |mname|
           define_method(mname) do |other, &blk|
-            raise InvalidPayloadError unless other.is_a?(Erlen::Schema::Base)
+            raise InvalidPayloadError unless other.is_a?(self.class)
             self.class.new(@elements.send(mname, other.send(:elements), &blk))
           end
         end
 
-        def elements; @elements end
-
         protected
+
+        def elements; @elements end
 
         def normalize_element(element)
           if self.class.element_type <= Base && element.is_a?(Hash)
@@ -263,10 +274,6 @@ module Erlen; module Schema
           else
             element
           end
-        end
-
-        def proxy(mname, *args, &blk)
-          @elements.send(mname, *args, &blk)
         end
       end
     end

@@ -111,10 +111,10 @@ describe Erlen::Schema::ArrayOf do
   end
 
   BasketOfApples = Erlen::Schema::ArrayOf.new(Apple)
-  Numbers = Erlen::Schema::ArrayOf.new(Numeric)
+  Numbers = Erlen::Schema.array_of(Numeric)
 
   describe "validate" do
-    it "validates apple and not pear" do
+    it "validates apples" do
       apple = Apple.new(poisonous: true)
       expect(apple.valid?).to be_truthy
       basket = BasketOfApples.new
@@ -128,6 +128,18 @@ describe Erlen::Schema::ArrayOf do
       # expect(basket.valid?).to be_falsey
       basket.pop
       expect(basket.valid?).to be_truthy
+
+      new_basket = BasketOfApples.import(basket)
+      expect(new_basket).to eq(new_basket)
+
+      basket = BasketOfApples.import([
+        {poisonous: true}, {poisonous: false}
+      ])
+      expect(basket.valid?).to be_truthy
+      expect(basket.count).to be(2)
+      basket = BasketOfApples.import(nil)
+      expect(basket.valid?).to be_truthy
+      expect(basket.count).to be(0)
     end
 
     it "validates primitive types" do
@@ -144,14 +156,54 @@ describe Erlen::Schema::ArrayOf do
   describe "proxy" do
     it "proxies some array methods" do
       numbers = Numbers.new
+      expect(numbers.count).to eq(0)
+      expect(numbers.class.name).to eq('ArrayOfNumeric')
       numbers << 0
+      expect(numbers.first).to eq(0)
+      expect(numbers.last).to eq(0)
       expect(numbers[0]).to eq(0)
       numbers[0] = 1
+      expect(numbers.first).to eq(1)
       expect(numbers[0]).to eq(1)
-      numbers << 2
-      numbers.each_with_index do |n, i|
-        expect(n).to eq(i + 1)
-      end
+
+      # * method
+      expect(numbers * 2).to eq(Numbers.new([1, 1]))
+      expect(numbers * ",").to eq('1')
+
+      # more assignment + chain assignment
+      numbers << 2 << 3
+      reference = numbers.push(4, 5).push(6)
+
+      # test more methods
+      expect(numbers.first(2)).to eq(Numbers.new([1, 2]))
+      expect(numbers.last(2)).to eq(Numbers.new([5, 6]))
+
+      # check by iterating
+      numbers.each_with_index { |n, i| expect(n).to eq(i + 1) }
+
+      # test == reference
+      expect(reference).to eq(numbers)
+      expect(numbers.count).to eq(numbers.to_a.length)
+
+      # test map and map!
+      strings = numbers.map { |n| n.to_s }
+      strings.each_with_index { |s, i| expect(s).to eq((i + 1).to_s) }
+      numbers.map! { |n| n - 1 }
+      numbers.each_with_index { |n, i| expect(n).to eq(i) }
+
+      # binary operators
+      more_numbers = Numbers.import([6, 7, 8])
+      expect(numbers).to_not eq(more_numbers)
+      combined = numbers + more_numbers
+      combined.each_with_index { |n, i| expect(n).to eq(i) }
+      expect(combined.count).to eq(9)
+      expect(combined.last).to eq(8)
+
+      # More unary operators
+      expect(combined.pop).to eq(8)
+      expect(combined.pop(2)).to eq(Numbers.new([6, 7]))
+      expect(combined.shift).to eq(0)
+      expect(combined.shift(2)).to eq(Numbers.new([1, 2]))
     end
   end
 
