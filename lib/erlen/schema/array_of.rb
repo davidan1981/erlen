@@ -1,19 +1,107 @@
 module Erlen; module Schema
-  # This class dynamically generates a concrete schema class that represents
-  # a collection type with a specific element type.
+  # This class dynamically generates a concrete schema *class* that
+  # represents a collection type with a specific element type. The payload
+  # of this schema works similar to Array object.
+  #
+  # Refer to the constants defined in the class to see which Array methods
+  # are supported. Generally, the following features are NOT supported: any
+  # range parameters, start-end parameters, permutations, and
+  # multi-dimensional operation.
+  #
   class ArrayOf
-    # List all array methods that are supported out of the box. Some
-    # methods are overriden. This list only includes methods that are
-    # proxied without any logical change.
-    ARRAY_METHODS = [
-      :'[]',
-      :each,
-      :each_with_index,
+
+    # List of methods that we simply proxy
+    METHODS_TO_PROXY = [
+      :[],
+      :any,
+      :at,
+      :bsearch,
+      :count,
+      :cycle,
+      :delete,
+      :delete_at,
+      :empty?,
       :find,
+      :fetch,
+      :find_index,
+      :include?,
       :index,
-      :pop,
-      :select
+      :inspect,
+      :join,
+      :length,
+      :rindex,
+      :slice,
+      :to_a,
+      :to_ary
     ]
+
+    # List of methods that we simply proxy but return self
+    METHODS_TO_PROXY_AND_RETURN_SELF = [
+      :clear,
+      :collect!,
+      :compact!,
+      :concat,
+      :delete_if,
+      :each,
+      :each_index,
+      :each_with_index,
+      :fill,
+      :initialize_copy,
+      :insert,
+      :keep_if,
+      :length,
+      :map!,
+      :reject!,
+      :replace,
+      :reverse!,
+      :reverse_each,
+      :rotate!,
+      :select!,
+      :size,
+      :sort!,
+      :sort_by!,
+      :uniq!,
+      :unshift
+    ]
+
+    # List of methods that we proxy but return the result in a new ArrayOf
+    # payload.
+    METHODS_TO_PROXY_AND_RETURN_NEW = [
+      :collect,
+      :compact,
+      :drop,
+      :drop_while,
+      :map,
+      :reject,
+      :reverse,
+      :rotate,
+      :select,
+      :shuffle,
+      :sort,
+      :take,
+      :take_while,
+      :uniq,
+      :values_at
+    ]
+
+    # List of binary operation methods that we proxy but also check if the
+    # operand is an ArrayOf payload (and strip the payload when proxing).
+    METHODS_TO_PROXY_BINARY_OP = [
+      :<=>,
+      :==
+    ]
+
+    # List of binary operation methods that we proxy and return self. It
+    # also checks if the operand is an ArrayOf payload (and strip the
+    # payload when proxing).
+    METHODS_TO_PROXY_BINARY_OP_AND_RETURN_NEW = [
+      :&,
+      :+,
+      :-,
+    ]
+
+    # Any method not listed here may have been written out. See instance
+    # methods defined below.
 
     # This class method will return a new class that represents a collection
     # schema with the specified element schema. Because of
@@ -34,6 +122,7 @@ module Erlen; module Schema
           # ArrayOf.
           attr_accessor :element_type
 
+          # For better debugging
           def name
             "ArrayOf#{element_type.name}"
           end
@@ -47,8 +136,8 @@ module Erlen; module Schema
           def import(obj_elements)
             payload = self.new
 
-            if obj_elements.class <= Base && obj_elements.respond_to?(:element_type)
-              obj_elements = obj_elements.elements
+            if obj_elements.class <= Base && obj_elements.class.respond_to?(:element_type)
+              obj_elements = obj_elements.send(:elements)
             elsif obj_elements.nil? || obj_elements.is_a?(Undefined)
               obj_elements = []
             end
@@ -81,32 +170,94 @@ module Erlen; module Schema
         end
 
         def initialize(elements=[])
-          @elements = elements.map do |elem|
-            normalize_element(elem)
-          end
+          @elements = elements.map { |elem| normalize_element(elem) }
           __init_inst_vars
         end
 
-        def <<(element)
-          @elements << normalize_element(element)
+        def *(arg)
+          result = @elements * arg
+          if result.is_a? String
+            result
+          else
+            self.class.new(result)
+          end
         end
 
+        # Must normalize before assinging element
+        def <<(element)
+          @elements << normalize_element(element)
+          self
+        end
+
+        # No range option
         def []=(arg, *more_args)
-          # a little cheat - just attempt to normalize.
           more_args.map! { |a| normalize_element(a) }
           @elements.[]=(arg, *more_args)
         end
 
-        # Dynamically create methods that will proxy to elements
-        ARRAY_METHODS.each do |mname|
-          define_method(mname) do |*args, &blk|
-            @elements.send(mname, *args, &blk)
-          end
+        def first(n=nil)
+          return @elements.first if n.nil?
+          self.class.new(@elements.first(n))
+        end
+
+        def last(n=nil)
+          return @elements.last if n.nil?
+          self.class.new(@elements.last(n))
+        end
+
+        def pop(n=nil)
+          return @elements.pop if n.nil?
+          self.class.new(@elements.pop(n))
+        end
+
+        # Must normalize before assinging element, so use <<
+        def push(*args)
+          args.each { |arg| self << arg }
+          self
+        end
+
+        def shift(n=nil)
+          return @elements.shift if n.nil?
+          self.class.new(@elements.shift(n))
         end
 
         def is_a?(schema)
           schema <= Base && schema.respond_to?(:element_type) &&
               schema.element_type == self.class.element_type
+        end
+
+        # Dynamically create methods that will proxy to elements
+        METHODS_TO_PROXY.each do |mname|
+          define_method(mname) do |*args, &blk|
+            @elements.send(mname, *args, &blk)
+          end
+        end
+
+        METHODS_TO_PROXY_AND_RETURN_SELF.each do |mname|
+          define_method(mname) do |*args, &blk|
+            @elements.send(mname, *args, &blk)
+            self
+          end
+        end
+
+        METHODS_TO_PROXY_AND_RETURN_NEW.each do |mname|
+          define_method(mname) do |*args, &blk|
+            self.class.new(@elements.send(mname, *args, &blk))
+          end
+        end
+
+        METHODS_TO_PROXY_BINARY_OP.each do |mname|
+          define_method(mname) do |other, &blk|
+            raise InvalidPayloadError unless other.is_a?(self.class)
+            @elements.send(mname, other.send(:elements), &blk)
+          end
+        end
+
+        METHODS_TO_PROXY_BINARY_OP_AND_RETURN_NEW.each do |mname|
+          define_method(mname) do |other, &blk|
+            raise InvalidPayloadError unless other.is_a?(self.class)
+            self.class.new(@elements.send(mname, other.send(:elements), &blk))
+          end
         end
 
         protected
@@ -123,10 +274,6 @@ module Erlen; module Schema
           else
             element
           end
-        end
-
-        def proxy(mname, *args, &blk)
-          @elements.send(mname, *args, &blk)
         end
       end
     end
