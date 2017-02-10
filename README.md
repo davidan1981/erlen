@@ -52,7 +52,7 @@ can be defined as the following:
 
 ```ruby
 class UserSchema < Erlen::Schema::Base
-  attribute :name, String, required: true { |a| a.length > 5 }
+  attribute :name, String, { required: true } { |a| a.length > 5 }
   attribute :email, String, required: true
   attribute :nickname, String, required: false
   attribute :organization, OrganizationSchema, required: true
