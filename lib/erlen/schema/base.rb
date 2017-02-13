@@ -59,7 +59,9 @@ module Erlen; module Schema
         schema_attributes.each_pair do |k, attr|
           obj_attribute_name = (attr.options[:alias] || attr.name).to_sym
 
-          if obj.class <= Base # cannot use is_a?
+          if obj.is_a? Hash
+            attr_val = obj[k]
+          elsif obj.class <= Base # cannot use is_a?
             begin
               attr_val = obj.send(k)
             rescue NoAttributeError => e
