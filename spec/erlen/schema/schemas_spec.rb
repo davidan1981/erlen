@@ -112,6 +112,12 @@ describe Erlen::Schema::ArrayOf do
     attribute :sweet, Boolean
   end
 
+  class AppleObj
+    def poisonous
+      true
+    end
+  end
+
   BasketOfApples = Erlen::Schema::ArrayOf.new(Apple)
   Numbers = Erlen::Schema.array_of(Numeric)
 
@@ -126,22 +132,24 @@ describe Erlen::Schema::ArrayOf do
       expect(basket.valid?).to be_truthy
       pear = Pear.new(sweet: false)
       basket << pear
-      # XXX: this is passing because we force import at the moment.
-      # expect(basket.valid?).to be_falsey
-      basket.pop
-      expect(basket.valid?).to be_truthy
+      expect(basket.valid?).to be_falsey
+      expect(basket.errors[0]).to eq('Element[2] must be Apple')
 
       new_basket = BasketOfApples.import(basket)
       expect(new_basket).to eq(new_basket)
 
       basket = BasketOfApples.import([
-        {poisonous: true}, {poisonous: false}
+        AppleObj.new, {poisonous: false}
       ])
       expect(basket.valid?).to be_truthy
       expect(basket.count).to be(2)
       basket = BasketOfApples.import(nil)
       expect(basket.valid?).to be_truthy
       expect(basket.count).to be(0)
+
+      basket = BasketOfApples.import([ {poisonous: 7} ])
+      expect(basket.valid?).to be_falsey
+      expect(basket.errors[0]).to eq(['poisonous: 7 is not Boolean'])
     end
 
     it "validates primitive types" do
