@@ -30,10 +30,13 @@ module Erlen; module Rails
           @response_schema = response_schema
           if request_schema
             begin
-              data = request.request_parameters
-              data = data[:data] if data.is_a?(Hash)
+              @request_payload = Erlen::Serializer::JSON.from_json(request.body.read, request_schema)
+              request.query_parameters.each do |k, v|
+                next unless request_schema.schema_attributes.keys.include?(k.to_sym)
 
-              @request_payload = Erlen::Serializer::JSON.from_json(data, request_schema)
+                @request_payload.send("#{k}=", v)
+              end
+
             rescue JSON::ParserError
               raise InvalidRequestError.new("Could not parse request body")
             end

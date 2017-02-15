@@ -5,6 +5,7 @@ describe Erlen::Rails::ControllerHelper do
   class JobRequestSchema < Erlen::Schema::Base
     attribute :name, String, required: true
     attribute :organization_id, Integer, required: true
+    attribute :query, String
   end
 
   class JobResponseSchema < JobRequestSchema
@@ -51,10 +52,13 @@ describe Erlen::Rails::ControllerHelper do
     let(:controller) { JobsController.new }
     it "validates create schemas" do
       request = OpenStruct.new
-      request.request_parameters = JSON.dump({
+      body = OpenStruct.new
+      request.body = body
+      request.query_parameters = {}
+      body.read = {
         name: "foo",
         organization_id: 123
-      })
+      }.to_json
       controller.request = request
       # manually trigger before action
       controller.validate_request_schema_for_create
@@ -68,6 +72,7 @@ describe Erlen::Rails::ControllerHelper do
     it "validates show schema (without a proper payload)" do
       request = OpenStruct.new
       request.body = ""
+      request.query_parameters = {}
       controller.request = request
       controller.validate_request_schema_for_show
       expect(controller.request_payload).to be_nil
@@ -77,9 +82,26 @@ describe Erlen::Rails::ControllerHelper do
       expect(controller.response_payload.valid?).to be_truthy
       expect(controller.response_schema).to be(JobResponseSchema)
     end
+    it 'sets request parameters' do
+      request = OpenStruct.new
+      body = OpenStruct.new
+      request.body = body
+      body.read = {
+        name: "foo",
+        organization_id: 123
+      }.to_json
+      request.query_parameters = { query: 'param', bad: true }
+      controller.request = request
+      controller.validate_request_schema_for_create
+
+      puts controller.request_payload.inspect
+      expect(controller.request_payload.query).to eq('param')
+    end
     it "invalidates malformed request body" do
       request = OpenStruct.new
-      request.request_parameters = "notavalidjson"
+      body = OpenStruct.new
+      request.body = body
+      body.read = "notavalidjson"
       controller.request = request
       expect do
         controller.validate_request_schema_for_create
@@ -95,13 +117,19 @@ describe Erlen::Rails::ControllerHelper do
     end
     it "invalidates inappropriate request payload" do
       request = OpenStruct.new
-      request.request_parameters = '{"wrongattribute": "foo"}'
+      body = OpenStruct.new
+      request.query_parameters = {}
+      request.body = body
+      body.read = { wrongattribute: 'foo' }.to_json
       controller.request = request
       expect do
         controller.validate_request_schema_for_create
       end.to raise_error(Erlen::NoAttributeError)
       request = OpenStruct.new
-      request.request_parameters = '{}'
+      body = OpenStruct.new
+      request.query_parameters = {}
+      request.body = body
+      body.read = {}.to_json
       controller.request = request
       expect do
         controller.validate_request_schema_for_create

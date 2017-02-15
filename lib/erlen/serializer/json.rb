@@ -3,10 +3,9 @@ require_relative 'base'
 
 module Erlen; module Serializer
   class JSON < Base
-    def self.from_json(json, schemaClass)
+    def self.from_json(json, schema_class)
       data = ::JSON.parse(json)
-
-      hash_to_payload(data, schemaClass)
+      hash_to_payload(data, schema_class)
     end
 
     def self.to_json(payload)
