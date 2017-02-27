@@ -5,7 +5,7 @@ module Erlen; module Serializer
   class JSON < Base
     def self.from_json(json, schema_class)
       data = ::JSON.parse(json)
-      hash_to_payload(data, schema_class)
+      data_to_payload(data, schema_class)
     end
 
     def self.to_json(payload)

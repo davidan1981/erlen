@@ -64,6 +64,8 @@ describe Erlen::Schema::AnyOf do
     it "validates as long as one schema matches" do
       dog = Dog.new(woof: true)
       expect(dog.valid?).to be_truthy
+      expect(dog.is_a? DogOrCat).to be_truthy
+      expect(dog.is_a? Cat).to be_falsey
       dog_or_cat = DogOrCat.import(dog)
       expect(dog_or_cat.is_a? DogOrCat).to be_truthy
       expect(dog_or_cat.is_a? Dog).to be_truthy
