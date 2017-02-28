@@ -29,6 +29,10 @@ module Erlen; module Schema
             new(hash)
           end
 
+          def schema_of?(payload)
+            super(payload) || allowed_schemas.select {|schema| schema.schema_of?(payload)}.length > 0
+          end
+
         end
 
         klass.allowed_schemas = allowed_schemas
@@ -57,11 +61,6 @@ module Erlen; module Schema
           @payload.method_missing(mname, value)
         end
 
-        def to_hash
-          warn "[DEPRECATION] `to_hash` is deprecated.  Please use `to_data` instead."
-          to_data
-        end
-
         def to_data
           @payload.to_data
         end
@@ -72,8 +71,11 @@ module Erlen; module Schema
         def __matched_schema_payload(hash)
           self.class.allowed_schemas.each do |s|
             begin
-              @payload = s.new(hash)
-              break
+              payload = s.new(hash)
+              if payload.valid?
+                @payload = payload
+                break
+              end
             rescue
               # nothing
             end

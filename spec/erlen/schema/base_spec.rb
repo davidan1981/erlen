@@ -75,7 +75,7 @@ describe Erlen::Schema::Base do
       expect(data['custom']).to eq(nil)
     end
 
-    it 'converts to hash' do
+    it 'converts to data' do
       payload = TestBaseSchema.import(TestObj.new)
       data = payload.to_data
 

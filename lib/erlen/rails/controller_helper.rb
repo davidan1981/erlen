@@ -30,18 +30,18 @@ module Erlen; module Rails
           @response_schema = response_schema
           if request_schema
             begin
-              @request_payload = Erlen::Serializer::JSON.from_json(request.body.read, request_schema)
+              @__erlen__request_payload = Erlen::Serializer::JSON.from_json(request.body.read, request_schema)
               request.query_parameters.each do |k, v|
                 next unless request_schema.schema_attributes.keys.include?(k.to_sym)
 
-                @request_payload.send("#{k}=", v)
+                @__erlen__request_payload.send("#{k}=", v)
               end
 
             rescue JSON::ParserError
               raise InvalidRequestError.new("Could not parse request body")
             end
 
-            raise ValidationError.from_errors(@request_payload.errors) unless @request_payload.valid?
+            raise ValidationError.from_errors(@__erlen__request_payload.errors) unless @__erlen__request_payload.valid?
           end
         end
         send(:"before_action", :"validate_request_schema_for_#{action}", only: action)
@@ -57,8 +57,8 @@ module Erlen; module Rails
           rescue JSON::ParserError
             raise InvalidResponseError.new("Could not parse response body")
           end
-          @response_payload = schema.new(json)
-          raise ValidationError.from_errors(@response_payload.errors) unless @response_payload.valid?
+          @__erlen__response_payload = schema.new(json)
+          raise ValidationError.from_errors(@__erlen__response_payload.errors) unless @__erlen__response_payload.valid?
         end
       end
     end
@@ -89,10 +89,10 @@ module Erlen; module Rails
     def render(options={}, extra_options={}, &block)
       if options.include?(:payload)
         payload = options.delete(:payload)
-        render_schema(payload, options, extra_options=extra_options, &block)
+        render_payload(payload, options, extra_options=extra_options, &block)
       else
         @validated = false
-        @response_payload = nil
+        @__erlen__response_payload = nil
         super
       end
     end
@@ -101,27 +101,27 @@ module Erlen; module Rails
     # request body or response body, validated against the schema. This
     # particular method is only used to retrieve the request payload.
     def request_payload
-      # raise NoPayloadError if @request_payload.nil?
-      @request_schema.import(@request_payload) if @request_payload
+      # raise NoPayloadError if @__erlen__request_payload.nil?
+      @request_schema.import(@__erlen__request_payload) if @__erlen__request_payload
     end
 
     # Reads the current response payload, an instance of Schema::Base class.
     # You can set this value using render().
     def response_payload
-      # raise NoPayloadError if @response_payload.nil?
-      @response_schema.import(@response_payload) if @response_payload
+      # raise NoPayloadError if @__erlen__response_payload.nil?
+      @response_schema.import(@__erlen__response_payload) if @__erlen__response_payload
     end
 
     private
 
-    def render_schema(payload, opts={}, extra_opts={}, &blk)
+    def render_payload(payload, opts={}, extra_opts={}, &blk)
       raise ValidationError.from_errors(payload.errors) unless payload.valid?
       raise ValidationError.new('Response Scheama does not match') if @response_schema && !payload.is_a?(@response_schema)
 
       opts.update({json: Erlen::Serializer::JSON.to_json(payload)})
       render(opts, extra_opts, &blk) # NOTE: indirect recursion!
       @validated = true # set this after recursive render()
-      @response_payload = payload
+      @__erlen__response_payload = payload
     end
 
   end

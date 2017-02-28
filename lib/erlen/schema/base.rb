@@ -89,6 +89,11 @@ module Erlen; module Schema
         klass.validator_procs = procs
       end
 
+      # Determines whether payload is an instance of this schema.
+      def schema_of?(payload)
+        self == payload.class
+      end
+
     end
 
     # There are two ways to initialize a payload: (1) by specifying a Hash
@@ -127,14 +132,13 @@ module Erlen; module Schema
 
     # Determines if the payload is an instance of the specified schema
     # class. This overrides Object#is_a? so subclassing is not considered
-    # true.
-    #
-    # TODO: we may have to dig more into how is_a? is really implemented.
+    # true. The logic is actually implemented in ::Base.schema_of?:: method
+    # so a concrete schema can implement more precise logic.
     #
     # @param klass [Class] a schema class
     # @return [Boolean] true if payload is considered of the specified type.
     def is_a?(klass)
-      klass == self.class
+      klass.schema_of?(self) if klass <= Base
     end
 
     def method_missing(mname, value=nil)
@@ -151,6 +155,7 @@ module Erlen; module Schema
     # @return [Hash] the payload data
     def to_hash
       warn "[DEPRECATION] `to_hash` is deprecated.  Please use `to_data` instead."
+      warn "  #{caller_locations(1).first}"
       to_data
     end
 

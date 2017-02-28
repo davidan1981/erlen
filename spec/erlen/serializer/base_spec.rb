@@ -4,9 +4,18 @@ describe Erlen::Serializer::Base do
   subject { described_class }
 
   describe "#data_to_payload" do
-    it "sets all the values" do
+    it "sets all the values from hash" do
       data = { foo: 'bar' }
       payload = subject.hash_to_payload(data, TestBaseSerializerSchema)
+
+      expect(payload.is_a? TestBaseSerializerSchema).to be_truthy
+      expect(payload.foo).to eq('bar')
+      expect(payload.valid?).to be_truthy
+    end
+
+    it "sets all the values" do
+      data = { foo: 'bar' }
+      payload = subject.data_to_payload(data, TestBaseSerializerSchema)
 
       expect(payload.is_a? TestBaseSerializerSchema).to be_truthy
       expect(payload.foo).to eq('bar')

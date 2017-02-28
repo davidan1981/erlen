@@ -64,7 +64,10 @@ describe Erlen::Schema::AnyOf do
     it "validates as long as one schema matches" do
       dog = Dog.new(woof: true)
       expect(dog.valid?).to be_truthy
+      expect(dog.is_a? DogOrCat).to be_truthy
+      expect(dog.is_a? Cat).to be_falsey
       dog_or_cat = DogOrCat.import(dog)
+      expect(dog_or_cat.is_a? DogOrCat).to be_truthy
       expect(dog_or_cat.is_a? Dog).to be_truthy
       expect(dog_or_cat.is_a? Cat).to be_falsey
       expect(dog_or_cat.is_a? Cow).to be_falsey
@@ -75,6 +78,9 @@ describe Erlen::Schema::AnyOf do
     end
     it "validates optional schema" do
       cow_or_nothing = CowOrNothing.new({})
+      expect(cow_or_nothing.is_a? CowOrNothing).to be_truthy
+      expect(cow_or_nothing.is_a? Cow).to be_falsey
+      expect(cow_or_nothing.is_a? Erlen::Schema::Empty).to be_truthy
       expect(cow_or_nothing).to be_truthy
       cow = Cow.new(moo: true)
       cow_or_nothing = CowOrNothing.import(cow)
