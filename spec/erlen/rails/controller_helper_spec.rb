@@ -94,7 +94,7 @@ describe Erlen::Rails::ControllerHelper do
       controller.request = request
       controller.validate_request_schema_for_create
 
-      puts controller.request_payload.inspect
+      # puts controller.request_payload.inspect
       expect(controller.request_payload.query).to eq('param')
     end
     it "invalidates malformed request body" do
