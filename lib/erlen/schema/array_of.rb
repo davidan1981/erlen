@@ -30,6 +30,7 @@ module Erlen; module Schema
       :join,
       :length,
       :rindex,
+      :size,
       :slice,
       :to_a,
       :to_ary
@@ -49,7 +50,6 @@ module Erlen; module Schema
       :initialize_copy,
       :insert,
       :keep_if,
-      :length,
       :map!,
       :reject!,
       :replace,
@@ -57,7 +57,6 @@ module Erlen; module Schema
       :reverse_each,
       :rotate!,
       :select!,
-      :size,
       :sort!,
       :sort_by!,
       :uniq!,

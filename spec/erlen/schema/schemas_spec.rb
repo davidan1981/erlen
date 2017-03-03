@@ -149,6 +149,8 @@ describe Erlen::Schema::ArrayOf do
       ])
       expect(basket.valid?).to be_truthy
       expect(basket.count).to be(2)
+      expect(basket.length).to be(2)
+      expect(basket.size).to be(2)
       basket = BasketOfApples.import(nil)
       expect(basket.valid?).to be_truthy
       expect(basket.count).to be(0)
