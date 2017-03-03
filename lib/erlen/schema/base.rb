@@ -144,7 +144,7 @@ module Erlen; module Schema
     # Checks if a payload is equal to another by ensuring they are of the
     # same class and contain the same data.
     def ==(other)
-      other.class == self.class && other.to_data == to_data
+      other.is_a?(self.class) && other.to_data == to_data
     end
 
     # Checks if payloads refer to the same hash key. It is common for
