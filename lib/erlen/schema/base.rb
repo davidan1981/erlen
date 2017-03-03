@@ -141,6 +141,16 @@ module Erlen; module Schema
       klass.schema_of?(self) if klass <= Base
     end
 
+    # Checks if a payload is equal to another by ensuring they are of the
+    # same class and contain the same data.
+    def ==(other)
+      other.is_a?(self.class) && other.to_data == to_data
+    end
+
+    # Checks if payloads refer to the same hash key. It is common for
+    # classes that override #== to also alias #eql? thusly.
+    alias eql? ==
+
     def method_missing(mname, value=nil)
       if mname.to_s.end_with?('=')
         __assign_attribute(mname[0..-2].to_sym, value)

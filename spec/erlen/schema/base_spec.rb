@@ -83,6 +83,52 @@ describe Erlen::Schema::Base do
       expect(data['custom']).to eq(nil)
     end
   end
+
+  describe '#==' do
+    it 'is equal to another of the same class and data' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestBaseSchema.import(foo: 'bar', custom: 1)
+
+      expect(payload1 == payload2).to be(true)
+    end
+
+    it 'is not equal to another if they differ in data' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestBaseSchema.import(foo: 'baz', custom: 1)
+
+      expect(payload1 == payload2).to be(false)
+    end
+
+    it 'is not equal to another if they differ in class' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestSubSchema.import(foo: 'bar', custom: 1)
+
+      expect(payload1 == payload2).to be(false)
+    end
+  end
+
+  describe '#eql?' do
+    it 'is equal to another of the same class and data' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestBaseSchema.import(foo: 'bar', custom: 1)
+
+      expect(payload1.eql?(payload2)).to be(true)
+    end
+
+    it 'is not equal to another if they differ in data' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestBaseSchema.import(foo: 'baz', custom: 1)
+
+      expect(payload1.eql?(payload2)).to be(false)
+    end
+
+    it 'is not equal to another if they differ in class' do
+      payload1 = TestBaseSchema.import(foo: 'bar', custom: 1)
+      payload2 = TestSubSchema.import(foo: 'bar', custom: 1)
+
+      expect(payload1.eql?(payload2)).to be(false)
+    end
+  end
 end
 
 class TestBaseSchema < Erlen::Schema::Base
@@ -96,4 +142,7 @@ class TestObj
   def bar
     'bar'
   end
+end
+
+class TestSubSchema < TestBaseSchema
 end
