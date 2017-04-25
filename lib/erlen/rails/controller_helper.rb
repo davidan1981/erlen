@@ -101,15 +101,13 @@ module Erlen; module Rails
     # request body or response body, validated against the schema. This
     # particular method is only used to retrieve the request payload.
     def request_payload
-      # raise NoPayloadError if @__erlen__request_payload.nil?
-      @request_schema.import(@__erlen__request_payload) if @__erlen__request_payload
+      @__erlen__request_payload.deep_clone if @__erlen__request_payload
     end
 
     # Reads the current response payload, an instance of Schema::Base class.
     # You can set this value using render().
     def response_payload
-      # raise NoPayloadError if @__erlen__response_payload.nil?
-      @response_schema.import(@__erlen__response_payload) if @__erlen__response_payload
+      @__erlen__response_payload.deep_clone if @__erlen__response_payload
     end
 
     private

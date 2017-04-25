@@ -82,6 +82,13 @@ describe Erlen::Schema::Base do
       expect(data['foo']).to eq('bar')
       expect(data['custom']).to eq(nil)
     end
+
+    it 'does not include undefined attribute' do
+      payload = TestBaseSchema.new()
+      data = payload.to_data
+      expect(data.include?('foo')).to be_falsey
+      expect(data.include?('custom')).to be_falsey
+    end
   end
 
   describe '#==' do
