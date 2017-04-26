@@ -170,20 +170,28 @@ module Erlen; module Schema
     end
 
     # Composes a hash where the keys are attribute names. Any values that
-    # are payloads will be flattened to hashes as well.
+    # are payloads will be flattened to hashes as well. Note that keys of
+    # undefined values will be excluded in the hash.
     #
     # @return [Hash] the payload data
     def to_data
-      attrs = self.class.schema_attributes
-
-      hash = attrs.map do |k, attr|
-        val = send(k)
-        val = val.to_data if val.class <= Base
-
-        [attr.name, val]
+      arr = []
+      self.class.schema_attributes.each do |k, attr|
+        val = @attributes[k] # do not use send or __find_attribute_value_by_name
+        unless val.is_a?(Undefined)
+          val = val.to_data if val.class <= Base
+          arr << [attr.name, val]
+        end
       end
+      Hash[arr]
+    end
 
-      Hash[hash]
+    # Performs a deep cloning of the current payload. It's cloning and not
+    # importing so undefined values will remain undefined.
+    #
+    # @return [Base] a newly cloned payload
+    def deep_clone
+      self.class.new(to_data)
     end
 
     protected
