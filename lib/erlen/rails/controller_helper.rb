@@ -20,7 +20,7 @@ module Erlen; module Rails
       # @param rescue_with [Symbol] the name of rescueing method
       def action_schema(action, request: nil, response: nil, rescue_with: nil)
         __erlen__create_before_action(action, request, response, rescue_with)
-        __erlen__create_after_action(action, response, rescue_with)
+        __erlen__create_after_action(action, request, response, rescue_with)
         nil
       end
 
@@ -30,14 +30,15 @@ module Erlen; module Rails
       # specified action to validate the request body/params.
       def __erlen__create_before_action(action, request_schema, response_schema, rescue_with)
         define_method(:"validate_request_payload_for_#{action}") do
+          __erlen__memoize_schemas(request_schema, response_schema)
           if rescue_with
             begin
-              __erlen__validate_request_payload(request_schema, response_schema)
-            rescue ErlenError => e
+              __erlen__validate_request_payload
+            rescue RailsError => e
               send(rescue_with, e)
             end
           else
-            __erlen__validate_request_payload(request_schema, response_schema)
+            __erlen__validate_request_payload
           end
         end
         send(:"before_action", :"validate_request_payload_for_#{action}", only: action)
@@ -45,16 +46,17 @@ module Erlen; module Rails
 
       # Generates a method dynamically and adds an after_action hook for the
       # specified action to validate the response body/params.
-      def __erlen__create_after_action(action, schema, rescue_with)
+      def __erlen__create_after_action(action, request_schema, response_schema, rescue_with)
         define_method(:"validate_response_payload_for_#{action}") do
+          __erlen__memoize_schemas(request_schema, response_schema)
           if rescue_with
             begin
-              __erlen__validate_response_payload(schema)
-            rescue ErlenError => e
+              __erlen__validate_response_payload
+            rescue RailsError => e
               send(rescue_with, e)
             end
           else
-            __erlen__validate_response_payload(schema)
+            __erlen__validate_response_payload
           end
         end
         send(:"after_action", :"validate_request_payload_for_#{action}", only: action)
@@ -89,7 +91,7 @@ module Erlen; module Rails
         payload = options.delete(:payload)
         render_payload(payload, options, extra_options=extra_options, &block)
       else
-        @validated = false
+        @__erlen__validated = false
         @__erlen__response_payload = nil
         super
       end
@@ -109,42 +111,44 @@ module Erlen; module Rails
     end
 
     def render_payload(payload, opts={}, extra_opts={}, &blk)
-      raise ValidationError.from_errors(payload.errors) unless payload.valid?
-      raise ValidationError.new('Response Scheama does not match') if @response_schema && !payload.is_a?(@response_schema)
+      raise InvalidResponseError.from_errors(payload.errors) unless payload.valid?
+      raise InvalidResponseError.new('Response Scheama does not match') if @response_schema && !payload.is_a?(@response_schema)
 
       opts.update({json: Erlen::Serializer::JSON.to_json(payload)})
       render(opts, extra_opts, &blk) # NOTE: indirect recursion!
-      @validated = true # set this after recursive render()
+      @__erlen__validated = true # set this after recursive render()
       @__erlen__response_payload = payload
     end
 
     private
 
-    def __erlen__validate_request_payload(request_schema, response_schema)
-      # memoize both of them here
+    def __erlen__memoize_schemas(request_schema, response_schema)
       @request_schema = request_schema
       @response_schema = response_schema
-      return unless request_schema
+    end
+
+    def __erlen__validate_request_payload
+      return unless @request_schema
       body = request.body.read
       if body && !body.to_s.empty?
-        @__erlen__request_payload = Erlen::Serializer::JSON.from_json(body, request_schema)
+        @__erlen__request_payload = Erlen::Serializer::JSON.from_json(body, @request_schema)
       else
-        @__erlen__request_payload = request_schema.new
+        @__erlen__request_payload = @request_schema.new
       end
       request.query_parameters.each do |k, v|
-        next unless request_schema.schema_attributes.keys.include?(k.to_sym)
+        next unless @request_schema.schema_attributes.keys.include?(k.to_sym)
         @__erlen__request_payload.send("#{k}=", v)
       end
-      raise ValidationError.from_errors(@__erlen__request_payload.errors) unless @__erlen__request_payload.valid?
+      raise InvalidRequestError.from_errors(@__erlen__request_payload.errors) unless @__erlen__request_payload.valid?
     rescue JSON::ParserError
       raise InvalidRequestError.new("Could not parse request body")
     end
 
-    def __erlen__validate_response_payload(response_schema)
-      return if @validated # no need to re-validate if done already
+    def __erlen__validate_response_payload
+      return if @__erlen__validated || @response_schema.nil? # no need to re-validate if done already
       json = JSON.parse(response.body)
-      @__erlen__response_payload = response_schema.new(json)
-      raise ValidationError.from_errors(@__erlen__response_payload.errors) unless @__erlen__response_payload.valid?
+      @__erlen__response_payload = @response_schema.new(json)
+      raise InvalidResponseError.from_errors(@__erlen__response_payload.errors) unless @__erlen__response_payload.valid?
     rescue JSON::ParserError
       raise InvalidResponseError.new("Could not parse response body")
     end

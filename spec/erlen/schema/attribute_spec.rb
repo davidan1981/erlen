@@ -33,7 +33,7 @@ describe Erlen::Schema::Attribute do
     it "throws exception if is required, but is Undefined" do
       attr = subject.new(:required, Type, { required: true })
 
-      expect { attr.validate(Erlen::Undefined.new) }.to raise_error(Erlen::ValidationError, "required is required")
+      expect { attr.validate(Erlen::Undefined.new) }.to raise_error(Erlen::AttributeValidationError, "required is required")
     end
 
     it "if not required, but undefined. no checks" do
@@ -44,7 +44,7 @@ describe Erlen::Schema::Attribute do
     it "validates boolean" do
       attr = subject.new(:boolean, Boolean)
 
-      expect { attr.validate(1) }.to raise_error(Erlen::ValidationError, "boolean: 1 is not Boolean")
+      expect { attr.validate(1) }.to raise_error(Erlen::AttributeValidationError, "boolean: 1 is not Boolean")
       attr.validate(true)
     end
 

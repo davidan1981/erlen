@@ -42,25 +42,25 @@ module Erlen; module Schema
     # @param value [Object] an actual value of the attribute to validate.
     def validate(value)
       if options[:required] && value.is_a?(Undefined)
-        raise ValidationError.new("#{name} is required")
+        raise AttributeValidationError.new("#{name} is required")
       elsif value.is_a?(Undefined) || value.nil?
         # then fine
       elsif type == Boolean
         if (value != true && value != false)
-          raise ValidationError.new("#{name}: #{value} is not Boolean")
+          raise AttributeValidationError.new("#{name}: #{value} is not Boolean")
         end
       elsif type <= Base && !value.valid?
         # uhh.. this can be better. not tested.
-        raise ValidationError.new(value.errors.map {|m| "#{name}: #{m}" }.join("\n"))
+        raise AttributeValidationError.new(value.errors.map {|m| "#{name}: #{m}" }.join("\n"))
       elsif !value.is_a? type
         # TODO: this type check must be revisited. Strict type equality is
         # required for schemas unless allow_subclass is set. Subclassing is
         # allowed for primitive types.
-        raise ValidationError.new("#{name}: #{value} is not #{type.name}")
+        raise AttributeValidationError.new("#{name}: #{value} is not #{type.name}")
       end
 
       if !validation.nil? && !validation.call(value)
-        raise ValidationError.new("#{name} is not valid")
+        raise AttributeValidationError.new("#{name} is not valid")
       end
     end
   end

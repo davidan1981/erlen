@@ -133,7 +133,7 @@ describe Erlen::Rails::ControllerHelper do
       controller.request = request
       expect do
         controller.validate_request_payload_for_create
-      end.to raise_error(Erlen::ValidationError)
+      end.to raise_error(Erlen::InvalidRequestError)
     end
     it "invalidates inappropriate response payload" do
       response = OpenStruct.new
@@ -146,7 +146,7 @@ describe Erlen::Rails::ControllerHelper do
       controller.response = response
       expect do
         controller.validate_response_payload_for_create
-      end.to raise_error(Erlen::ValidationError)
+      end.to raise_error(Erlen::InvalidResponseError)
     end
   end
 end

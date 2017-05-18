@@ -209,7 +209,7 @@ module Erlen; module Schema
         klass_attribute = klass.schema_attributes[k]
         begin
           klass_attribute.validate(v)
-        rescue ValidationError => e
+        rescue AttributeValidationError => e
           @errors << e.message
         end
       end
